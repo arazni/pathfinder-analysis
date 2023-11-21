@@ -12,3 +12,6 @@ let and1 left right1 =
 
 let selfFn x =
   x
+
+let asBool number =
+  number = 1

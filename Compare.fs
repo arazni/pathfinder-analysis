@@ -6,20 +6,30 @@ open Bestiary
 type RollResult =
     CritFail | Fail | Success | CritSuccess
 
+type HitResult =
+    CritFail | Fail | Success | CritSuccess | CritWithImmunity
+
 type Contested =
     PlayerAttack | CreatureSave
 
 let upgradeResult result =
     match result with
-    | CritFail -> Fail
-    | Fail -> Success
-    | Success | CritSuccess -> CritSuccess
+    | RollResult.CritFail -> RollResult.Fail
+    | RollResult.Fail -> RollResult.Success
+    | RollResult.Success | RollResult.CritSuccess -> RollResult.CritSuccess
 
 let downgradeResult result =
     match result with
-    | CritSuccess -> Success
-    | Success -> Fail
-    | Fail | CritFail -> CritFail
+    | RollResult.CritSuccess -> RollResult.Success
+    | RollResult.Success -> RollResult.Fail
+    | RollResult.Fail | RollResult.CritFail -> RollResult.CritFail
+
+let toHitResult hasCritImmunity rollResult =
+    match rollResult with
+    | RollResult.CritSuccess -> if hasCritImmunity then CritWithImmunity else CritSuccess
+    | RollResult.Success -> Success
+    | RollResult.Fail -> Fail
+    | RollResult.CritFail -> CritFail
 
 let handleNats roll result =
     if roll = 1 then downgradeResult result
@@ -27,15 +37,17 @@ let handleNats roll result =
     else result
 
 let rollResult dc rollTotal d20Roll =
-    [|dc + 10, CritSuccess; dc, Success; dc - 9, Fail; -1000, CritFail|]
+    [|dc + 10, RollResult.CritSuccess; dc, RollResult.Success; dc - 9, RollResult.Fail; -1000, RollResult.CritFail|]
     |> Seq.find (fun (dc, _)  -> rollTotal >= dc)
     |> fun (_, result) -> handleNats d20Roll result
 
 let defenseRollResult defenseSelector creature dc d20 =
     rollResult dc (d20 + defenseSelector creature) d20
+    |> toHitResult false
 
 let attackRollResult defenseSelector creature attackModifier d20 =
     rollResult (defenseSelector creature) (d20 + attackModifier) d20
+    |> toHitResult (asBool creature.hasCritImmunity)
 
 let handleRollresult contested defenseSelector creature dcOrAttackModifier d20 =
     (match contested with
@@ -60,17 +72,3 @@ let transformedResultsByRoll resultTransform contested defenseSelector offenseMo
 
 let resultsByRoll contested defenseSelector offenseModifier (creatures : Creature seq) =
     transformedResultsByRoll selfFn contested defenseSelector offenseModifier creatures
-
-let defaultCastMultiplier result =
-    match result with
-    | CritFail -> 2.0
-    | Fail -> 1.0
-    | Success -> 0.5
-    | CritSuccess -> 0.0
-
-let defaultHitMultiplier result =
-    match result with 
-    | CritSuccess -> 2.0
-    | Success -> 1.0
-    | Fail -> 0.0
-    | CritFail -> 0.0
