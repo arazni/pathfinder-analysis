@@ -1,0 +1,6 @@
+.vs/*
+.vscode/*
+.editorconfig
+*/bin/*
+*/obj/*
+obj/*
