@@ -35,6 +35,13 @@ transformedResultsByRoll (spout 10) CreatureSave middleSave (casterDc true 10) b
 |> rollAveragesToAverage
 |> printf "%A"
 
-allLevelResults spout CreatureSave middleSave (casterDc true) bestiaryByLevel 0
+transformedResultsByRollByLevel spout CreatureSave middleSave (casterDc true) bestiaryByLevel 0
 |> Seq.toArray
 |> printf "%A"
+
+transformedResultsByRollByLevel spout CreatureSave middleSave (casterDc true) bestiaryByLevel 0
+|> resultsByRollByLevelToXyz
+|> Seq.map savingThrowNormalize
+|> Seq.toArray
+|> printf "%A"
+

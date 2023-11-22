@@ -36,6 +36,9 @@ let middleSave creature =
 let creatureDc save =
   save + 10
 
+let creatureAc creature =
+  creature.ac
+
 let shadowSignet creature =
   creature.ac |> min (creatureDc creature.fortitude) |> min (creatureDc creature.reflex)
 

@@ -13,9 +13,16 @@ let resultsToAverage (resultAndAverageDamageSeq: seq<float * int>) =
 let rollAveragesToAverage (rollAndAverageDamage: seq<int * float>) =
   Seq.sumBy (fun (_, averageDamage) -> averageDamage) rollAndAverageDamage / float (Seq.length rollAndAverageDamage)
 
-let levelResults resultTransform contested defenseSelector offenseModifier (creaturesByLevel: IDictionary<int, seq<Creature>>) creatureLevelDiff playerLevel =
+let transformedResultsByRollForLevel resultTransform contested defenseSelector offenseModifier (creaturesByLevel: IDictionary<int, seq<Creature>>) creatureLevelDiff playerLevel =
   transformedResultsByRoll (resultTransform playerLevel) contested defenseSelector (offenseModifier playerLevel) creaturesByLevel[playerLevel + creatureLevelDiff]
 
-let allLevelResults resultTransform contested defenseSelector offenseModifier (creaturesByLevel: IDictionary<int, seq<Creature>>) creatureLevelDiff =
+let transformedResultsByRollByLevel resultTransform contested defenseSelector offenseModifier (creaturesByLevel: IDictionary<int, seq<Creature>>) creatureLevelDiff =
   pcLevels
-  |> Seq.map (levelResults resultTransform contested defenseSelector offenseModifier creaturesByLevel creatureLevelDiff)
+  |> Seq.map (fun level -> level, transformedResultsByRollForLevel resultTransform contested defenseSelector offenseModifier creaturesByLevel creatureLevelDiff level)
+
+let resultsByRollByLevelToXyz (rbrbl: seq<int * seq<int * seq<float * int>>>) =
+  rbrbl
+  |> Seq.collect (fun (level, rbr) -> Seq.map (fun (roll, results) -> level, roll, resultsToAverage results) rbr)
+
+let savingThrowNormalize (level, roll, average) =
+  level, 21 - roll, average
