@@ -4,10 +4,12 @@
 #load "Bestiary.fs"
 #load "Compare.fs"
 #load "Library.fs"
+#load "Transform.fs"
 
 open PathfinderAnalysis.Library
 open PathfinderAnalysis.Bestiary
 open PathfinderAnalysis.Compare
+open PathfinderAnalysis.Transform
 
 // #r "nuget: Plotly.NET.Interactive"
 // open Plotly.NET
@@ -20,6 +22,19 @@ transformedResultsByRoll defaultCastMultiplier CreatureSave middleSave (casterDc
 |> Seq.toArray
 |> printf "%A"
 
-transformedResultsByRoll (damageMartialShortbow 2) PlayerAttack (fun c -> c.ac) (highMartialAttack false 2) bestiaryByLevel[2]
+transformedResultsByRoll (martialShortbow 10) PlayerAttack (fun c -> c.ac) (highMartialAttack false 10) bestiaryByLevel[10]
+|> Seq.toArray
+|> printf "%A"
+
+transformedResultsByRoll (telekineticProjectile 10) PlayerAttack (fun c -> c.ac) (casterAttack false false 10) bestiaryByLevel[10]
+|> Seq.toArray
+|> printf "%A"
+
+transformedResultsByRoll (spout 10) CreatureSave middleSave (casterDc true 10) bestiaryByLevel[10]
+|> Seq.map (fun (die: int, resultAndAverageDamageSeq) -> die, resultsToAverage resultAndAverageDamageSeq)
+|> rollAveragesToAverage
+|> printf "%A"
+
+allLevelResults spout CreatureSave middleSave (casterDc true) bestiaryByLevel 0
 |> Seq.toArray
 |> printf "%A"

@@ -20,15 +20,18 @@ type Creature = {
 
 let lowestSave creature =
   creature.fortitude |> min creature.reflex |> min creature.will
+  |> (+) creature.hasMagicBonus
 
 let highestSave creature =
   creature.fortitude |> max creature.reflex |> max creature.will
+  |> (+) creature.hasMagicBonus
 
 let middleSave creature = 
   [creature.fortitude; creature.reflex; creature.will]
   |> Seq.sort
   |> Seq.skip 1
   |> Seq.head
+  |> (+) creature.hasMagicBonus
 
 let creatureDc save =
   save + 10

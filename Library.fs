@@ -3,7 +3,6 @@
 open Helpers
 open Compare
 
-let pcLevels = [1 .. 20]
 let npcLevels = [-1 .. 25]
 
 type DiceSize = D4 | D6 | D8 | D10 | D12 | D20
@@ -67,9 +66,7 @@ let casterDc hasApex level =
   |> (+) 10
 
 let spellRank (level: int) =
-  (float level) / 2.0
-  |> floor
-  |> int
+  (level + 1) / 2
 
 let defaultCastMultiplier result =
   match result with
@@ -97,6 +94,12 @@ let damageTelekineticProjectile result level =
   |> float
   |> (*) (averageRoll D6)
   |> (*) (defaultHitMultiplier result)
+
+let damageSpout result level =
+  1 + spellRank level
+  |> float
+  |> (*) (averageRoll D4)
+  |> (*) (defaultCastMultiplier result)
 
 let damagePropertyRune result level =
   float (propertyDice level) * (averageRoll D6)
@@ -129,6 +132,17 @@ let damageDeadly dieSize result level =
   | CritSuccess | CritWithImmunity -> deadlyDice level |> float |> (*) (averageRoll dieSize)
   | Success | Fail | CritFail -> 0.0
 
-let damageMartialShortbow level result =
-  [damageDeadly D10 result; damageWeapon D6 result; float << martialWeaponSpecialization]
+let damageMartialWeaponSpecialization result level =
+  defaultHitMultiplier result * float (martialWeaponSpecialization level)
+
+let martialShortbow level result =
+  [damageDeadly D10 result; damageWeapon D6 result; damageMartialWeaponSpecialization result; damagePropertyRune result]
+  |> Seq.sumBy (fun fn -> fn level)
+
+let telekineticProjectile level result =
+  [damageTelekineticProjectile result]
+  |> Seq.sumBy (fun fn -> fn level)
+
+let spout level result =
+  [damageSpout result]
   |> Seq.sumBy (fun fn -> fn level)

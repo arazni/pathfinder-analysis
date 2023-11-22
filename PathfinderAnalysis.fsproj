@@ -9,6 +9,7 @@
     <Compile Include="Bestiary.fs" />
     <Compile Include="Compare.fs" />
     <Compile Include="Library.fs" />
+    <Compile Include="Transform.fs" />
     <Compile Include="Test.fsx" />
   </ItemGroup>
   <ItemGroup />
