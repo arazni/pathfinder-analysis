@@ -16,5 +16,11 @@ let selfFn x =
 let selfFn2 _ x =
   x
 
+let first (x, _) =
+  x
+
+let second (_, x) =
+  x
+
 let asBool number =
   number = 1

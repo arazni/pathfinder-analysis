@@ -41,7 +41,7 @@ transformedResultsByRollByLevel spout CreatureSave middleSave (casterDc true) be
 
 transformedResultsByRollByLevel spout CreatureSave middleSave (casterDc true) bestiaryByLevel 0
 |> resultsByRollByLevelToXyz
-|> Seq.map savingThrowNormalize
+|> Seq.map savingThrowNormalizeXyz
 |> Seq.toArray
 |> printf "%A"
 

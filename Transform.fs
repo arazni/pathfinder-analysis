@@ -24,5 +24,14 @@ let resultsByRollByLevelToXyz (rbrbl: seq<int * seq<int * seq<float * int>>>) =
   rbrbl
   |> Seq.collect (fun (level, rbr) -> Seq.map (fun (roll, results) -> level, roll, resultsToAverage results) rbr)
 
-let savingThrowNormalize (level, roll, average) =
+let resultsByRollByLevelToRollsAndAveragesByLevel (rbrbl: seq<int * seq<int * seq<float * int>>>) =
+  rbrbl
+  |> Seq.map (fun (level, rbr) -> level, Seq.map (fun (roll, results) -> roll, resultsToAverage results) rbr)
+
+let savingThrowNormalizeXyz (level, roll, average) =
   level, 21 - roll, average
+
+let savingThrowNormalizeRollsAndAveragesByLevel (raabl) =
+  raabl
+  |> Seq.map (fun (level, rab) -> level, Seq.map (fun (roll, average) -> (21 - roll, average)) rab)
+

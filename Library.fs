@@ -140,7 +140,7 @@ let martialShortbow level result =
   |> Seq.sumBy (fun fn -> fn level)
 
 let martialArbalest level result =
-  [damageWeapon D10 result; damageMartialWeaponSpecialization result; damagePropertyRune result]
+  [damageWeapon D10 result; damageMartialWeaponSpecialization result] //; damagePropertyRune result]
   |> Seq.sumBy (fun fn -> fn level)
 
 let telekineticProjectile level result =
