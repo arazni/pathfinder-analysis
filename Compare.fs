@@ -12,6 +12,16 @@ type HitResult =
 type Contested =
     PlayerAttack | CreatureSave
 
+type ResultData<'a> = { Result: 'a; Count: int }
+
+type ResultDataForRoll<'a> = { Roll: int; Results: (ResultData<'a> seq) }
+
+let toResultData (x, y) =
+    { Result = x; Count = y }
+
+let toResultDataForRoll (roll, results) =
+    { Roll = roll; Results = results }
+
 let upgradeResult result =
     match result with
     | RollResult.CritFail -> RollResult.Fail
@@ -62,6 +72,7 @@ let transformedResultsForRoll resultTransform contested defenseSelector dcOrAtta
         |> resultTransform)
     |> Seq.groupBy selfFn
     |> Seq.map (fun (key, results) -> key, Seq.length results)
+    |> Seq.map toResultData
 
 let resultsForRoll contested defenseSelector offenseModifier (creatures: Creature seq) d20 =
     transformedResultsForRoll selfFn contested defenseSelector offenseModifier creatures d20
@@ -69,6 +80,7 @@ let resultsForRoll contested defenseSelector offenseModifier (creatures: Creatur
 let transformedResultsByRoll resultTransform contested defenseSelector offenseModifier (creatures : Creature seq) =
     [| 1..20 |]
     |> Seq.map (fun d20 -> d20, transformedResultsForRoll resultTransform contested defenseSelector offenseModifier creatures d20)
+    |> Seq.map toResultDataForRoll
 
 let resultsByRoll contested defenseSelector offenseModifier (creatures : Creature seq) =
     transformedResultsByRoll selfFn contested defenseSelector offenseModifier creatures
