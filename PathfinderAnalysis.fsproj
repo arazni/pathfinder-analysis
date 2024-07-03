@@ -10,6 +10,8 @@
     <Compile Include="Compare.fs" />
     <Compile Include="Library.fs" />
     <Compile Include="Transform.fs" />
+    <Compile Include="Hitpoints.fs" />
+    <Compile Include="DamageDistribution.fs" />
     <Compile Include="Test.fsx" />
   </ItemGroup>
   <ItemGroup />

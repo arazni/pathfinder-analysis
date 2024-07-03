@@ -34,6 +34,12 @@ let martialWeaponSpecialization level =
   | x when x < 15 -> atLeasts [1; 5; 13] level
   | _ -> 2 * atLeasts [1; 5; 13] level
 
+let fighterWeaponSpecialization level =
+  match level with
+  | x when x < 7 -> 0
+  | x when x < 15 -> atLeasts [1; 1; 5; 13] level
+  | _ -> 2 * atLeasts [1; 1; 5; 13] level
+
 let spellProficiency level= 
   level + 2 * atLeasts [1; 7; 15; 19] level
 
@@ -54,6 +60,10 @@ let deadlyDice level =
 
 let highMartialAttack hasApex level =
   [highModifier hasApex; martialProficiency; potencyBonus]
+  |> Seq.sumBy (fun fx -> fx level)
+
+let highFighterAttack hasApex level =
+  [highModifier hasApex; fighterProficiency; potencyBonus]
   |> Seq.sumBy (fun fx -> fx level)
 
 let casterAttack hasApex hasGate level =
@@ -101,12 +111,35 @@ let damageSpout result level =
   |> (*) (averageRoll D4)
   |> (*) (defaultCastMultiplier result)
 
+let damageTempestSurge result level =
+  spellRank level
+  |> float
+  |> (*) (averageRoll D12)
+  |> (*) (defaultCastMultiplier result)
+
+let damageThunderstrike result level =
+  spellRank level
+  |> float
+  |> (*) (averageRoll D12 + averageRoll D4)
+  |> (*) (defaultCastMultiplier result)
+
+let damageFireRay result level =
+  2 * spellRank level
+  |> float
+  |> (*) (averageRoll D6)
+  |> (*) (defaultHitMultiplier result)
+
+let damageForceBarrage actions result level =
+  actions * ((spellRank level + 1) / 2)
+  |> float
+  |> (*) (averageRoll D4 + 1.0)
+
 let damagePropertyRune result level =
   float (propertyDice level) * (averageRoll D6)
   |> (*) (defaultHitMultiplier result)
 
 let damageWeapon dieSize result level =
-  float (weaponDice level) * (averageRoll dieSize)
+  float (weaponDice level) * averageRoll dieSize
   |> (*) (defaultHitMultiplier result)
 
 let damageFatal dieSize fatalDieSize result level =
@@ -122,7 +155,7 @@ let damageFatal dieSize fatalDieSize result level =
   | Success | Fail | CritFail -> 
     damageWeapon dieSize result level
 
-let damageAttribute attributeSelector result level =
+let damageAttribute attributeSelector result (level: int) =
   attributeSelector level
   |> float
   |> (*) (defaultHitMultiplier result)
@@ -135,13 +168,36 @@ let damageDeadly dieSize result level =
 let damageMartialWeaponSpecialization result level =
   defaultHitMultiplier result * float (martialWeaponSpecialization level)
 
+let damageFighterWeaponSpecialization result level =
+  defaultHitMultiplier result * float (fighterWeaponSpecialization level)
+
 let martialShortbow level result =
-  [damageDeadly D10 result; damageWeapon D6 result; damageMartialWeaponSpecialization result; damagePropertyRune result]
+  [damageDeadly D10; damageWeapon D6; damageMartialWeaponSpecialization] //; damagePropertyRune result]
+  |> Seq.sumBy (fun fn -> fn result level)
+
+let fighterShortbow level result =
+  [damageDeadly D10; damageWeapon D6; damageFighterWeaponSpecialization; damagePropertyRune]
+  |> Seq.sumBy (fun fn -> fn result level)
+
+let fighterArbalest level result =
+  [damageWeapon D10; damageFighterWeaponSpecialization; damagePropertyRune]
+  |> Seq.sumBy (fun fn -> fn result level)
+
+let martialRepeatingHandCrossbow level result =
+  [damageWeapon D6 result; damageMartialWeaponSpecialization result; damagePropertyRune result]
   |> Seq.sumBy (fun fn -> fn level)
 
 let martialArbalest level result =
   [damageWeapon D10 result; damageMartialWeaponSpecialization result] //; damagePropertyRune result]
   |> Seq.sumBy (fun fn -> fn level)
+
+let fighterLongsword level result =
+  [damageWeapon D8; damageFighterWeaponSpecialization; damagePropertyRune; damageAttribute (highModifier true)]
+  |> Seq.sumBy (fun fn -> fn result level)
+
+let fighterShortsword level result =
+  [damageWeapon D6; damageFighterWeaponSpecialization; damagePropertyRune; damageAttribute (highModifier true)]
+  |> Seq.sumBy (fun fn -> fn result level)
 
 let telekineticProjectile level result =
   [damageTelekineticProjectile result]
@@ -150,3 +206,17 @@ let telekineticProjectile level result =
 let spout level result =
   [damageSpout result]
   |> Seq.sumBy (fun fn -> fn level)
+
+let tempestSurge level result =
+  [damageTempestSurge result]
+  |> Seq.sumBy (fun fn -> fn level)
+
+let fireRay level result = 
+  [damageFireRay result]
+  |> Seq.sumBy (fun fn -> fn level)
+
+let thunderstrike level result =
+  damageThunderstrike result level
+
+let forceBarrage actions level result = 
+  damageForceBarrage actions result level

@@ -61,6 +61,26 @@ let flatten (chartDataSequence: ChartSequenceData seq) =
     |> Seq.map (fun y -> { Title = x.Title; Level = y.Level; AveragesByRoll = y.AveragesByRoll })
   )
 
+let mergeRollAverages (leftAveragesForRolls: AverageForRoll seq) (rightAveragesForRolls: AverageForRoll seq) =
+  rightAveragesForRolls
+  |> Seq.allPairs leftAveragesForRolls
+  |> Seq.map (fun (l, r) -> l.Average + r.Average)
+  |> Seq.sort
+  |> Seq.mapi (fun i sum -> sum, i / 20 + 1)
+  |> Seq.groupBy (fun (_, rollLuck) -> rollLuck)
+  |> Seq.map (fun (rollLuck, sums) -> {
+    Roll = rollLuck;
+    Average = Seq.sumBy (fun (sum, _) -> sum) sums / 20.0
+  })
+
+let mergeRollAveragesByLevel (left: AverageByRollForLevel seq) (right: AverageByRollForLevel seq) =
+  right
+  |> Seq.zip left
+  |> Seq.map (fun (l, r) -> {
+    Level = l.Level;
+    AveragesByRoll = mergeRollAverages l.AveragesByRoll r.AveragesByRoll
+  })
+
 let generateCharts (titleFn: int -> string) flatChartData =
   flatChartData
   |> Seq.groupBy (fun flatData -> flatData.Level)
