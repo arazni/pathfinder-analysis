@@ -5,17 +5,6 @@ open Compare
 
 let npcLevels = [-1 .. 25]
 
-type DiceSize = D4 | D6 | D8 | D10 | D12 | D20
-
-let averageRoll dieSize =
-  match dieSize with
-  | D4 -> 2.5
-  | D6 -> 3.5
-  | D8 -> 4.5
-  | D10 -> 5.5
-  | D12 -> 6.5
-  | D20 -> 10.5
-
 let highModifier apex level =
   4 + atLeasts [10; 20] level + (atLeast 17 >> and1 apex) level
 
