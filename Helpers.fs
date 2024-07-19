@@ -65,13 +65,14 @@ let choose n kin =
     if kin > n - kin then n - kin
     else kin
   
-  let kList = [k..(-1)..1] |> List.map bigint
-  let deltaList = [n..(-1)..(n-k+1)] |> List.map bigint
+  let kList = [k..(-1)..1] |> Seq.map bigint
+  let deltaList = [n..(-1)..(n-k+1)] |> Seq.map bigint
   
-  let kFactorial = List.reduce (*) kList
-  let deltaFactorial = List.reduce (*) deltaList
+  let kFactorial = Seq.reduce (*) kList
+  let deltaFactorial = Seq.reduce (*) deltaList
   deltaFactorial / kFactorial
 
 let coefficientOfExponentiatedGeometricSeries exponent seriesLength coefficientSlot =
   [0..(coefficientSlot - exponent)/seriesLength]
-  |> List.sumBy (fun i -> bigint (pown -1 i ) * (choose exponent i) * (choose (coefficientSlot - i*seriesLength - 1) (exponent - 1)) )
+  |> Seq.sumBy (fun i -> bigint (pown -1 i ) * (choose exponent i) * (choose (coefficientSlot - i*seriesLength - 1) (exponent - 1)) )
+

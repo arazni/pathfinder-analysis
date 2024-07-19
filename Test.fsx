@@ -7,16 +7,15 @@
 // #load "Compare.fs"
 // #load "Library.fs"
 // #load "Transform.fs"
-// #load "DamageDistribution.fs"
-#load "Request.fs"
-open PathfinderAnalysis.Helpers
-open Request.Guimard
+#load "DamageDistribution.fs"
+// #load "Request.fs"
 
+open PathfinderAnalysis.Helpers
 // open PathfinderAnalysis.Library
 // open PathfinderAnalysis.Bestiary
 // open PathfinderAnalysis.Compare
 // open PathfinderAnalysis.Transform
-// open PathfinderAnalysis.DamageDistribution
+open PathfinderAnalysis.DamageDistribution
 // open Plotly.NET
 //open Plotly.NET.ImageExport
 
@@ -53,46 +52,14 @@ open Request.Guimard
 // |> chunk 20
 // |> chunksToAverages
 
-diceValues D4
-|> List.map (fun x -> [x])
-|> pairUp2 (diceValues D4)
-// |> pairUp2 (diceValues D4)
-|> List.map evaluateRoll
-|> List.groupBy selfFn
-|> List.map (fun (left, right) -> left, List.length right)
+rollDistributions 0 [D12, 4; D6, 3;]
+|> Seq.toList
+|> chunk 20
+|> chunksToAverages
+|> Seq.toArray
 
-// // |> List.length
+// |> mergeRolls (rollDistribution D6 3)
+// |> List.map (fun (left) -> { Roll = left.Roll + right.Roll; Count = left.Count + right.Count })
+// |> chunk 20
+// |> chunksToAverages
 
-requestWork D4 2
-|> List.groupBy selfFn
-
-type DataPrep = {
-  ValuesChanceAndKeysDiceRolled: (float * int) list;
-  NameResult: string;
-}
-
-type Data = {
-  Values: float list;
-  Keys: int list;
-  Name: string;
-}
-
-let work = 
-  [1..6]
-  |> List.map (fun x -> x, requestWork D6 x)
-
-[Success; SuccessWithComplication; PartialSuccess; PartialSuccessWithComplication; Failure]
-|> List.map (fun result -> 
-  List.fold (fun state diceAndResultChances ->
-    List.where (fun resultChance -> resultChance.Result = result) (second diceAndResultChances)
-    |> List.tryExactlyOne
-    |> fun resultChance -> 
-      if Option.isNone resultChance then state 
-      else List.append state [((Option.get resultChance).Chance, first diceAndResultChances)]
-    ) [] work
-  |> fun pairs -> { NameResult = string result; ValuesChanceAndKeysDiceRolled = pairs })
-  |> List.map (fun preps -> { Name = preps.NameResult; Values = List.map first preps.ValuesChanceAndKeysDiceRolled; Keys = List.map second preps.ValuesChanceAndKeysDiceRolled })
-
-// List.where (fun (dice, resultChances) -> 
-    // List.where (fun resultChance -> resultChance.Result = result) resultChances) work
-  
