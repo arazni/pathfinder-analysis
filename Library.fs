@@ -2,6 +2,7 @@
 
 open Helpers
 open Compare
+open DamageDistribution
 
 let npcLevels = [-1 .. 25]
 
@@ -82,56 +83,96 @@ let defaultHitMultiplier result =
   | Fail -> 0.0
   | CritFail -> 0.0
 
-let damageNeedleDarts result level =
+let averageDamageNeedleDarts result level =
   2 + spellRank level
   |> float
   |> (*) (averageRoll D4)
   |> (*) (defaultHitMultiplier result)
 
-let damageTelekineticProjectile result level =
+let toDamageCount damageFromResultFunction result rollCounts =
+  rollCounts
+  |> Seq.map (fun rollCount -> { Damage = float rollCount.Roll * damageFromResultFunction result; Count = rollCount.Count })
+
+let diceDamageNeedleDarts result level =
+  2 + spellRank level
+  |> rollDistribution D4
+  |> toDamageCount defaultHitMultiplier result
+
+let averageDamageTelekineticProjectile result level =
   1 + spellRank level
   |> float
   |> (*) (averageRoll D6)
   |> (*) (defaultHitMultiplier result)
 
-let damageSpout result level =
+let diceDamageTelekineticProjectile result level =
+  1 + spellRank level
+  |> rollDistribution D6
+  |> toDamageCount defaultHitMultiplier result
+
+let averageDamageSpout result level =
   1 + spellRank level
   |> float
   |> (*) (averageRoll D4)
   |> (*) (defaultCastMultiplier result)
 
-let damageTempestSurge result level =
+let diceDamageSpout result level =
+  1 + spellRank level
+  |> rollDistribution D4
+  |> toDamageCount defaultCastMultiplier result
+
+let averageDamageTempestSurge result level =
   spellRank level
   |> float
   |> (*) (averageRoll D12)
   |> (*) (defaultCastMultiplier result)
 
-let damageThunderstrike result level =
+let diceDamageTempestSurge result level =
+  spellRank level
+  |> rollDistribution D12
+  |> toDamageCount defaultCastMultiplier result
+
+let averageDamageThunderstrike result level =
   spellRank level
   |> float
   |> (*) (averageRoll D12 + averageRoll D4)
   |> (*) (defaultCastMultiplier result)
 
-let damageFireRay result level =
+let diceDamageThunderstrike result level = 
+  seq {D12, spellRank level; D4, spellRank level}
+  |> rollDistributions 0
+  |> toDamageCount defaultCastMultiplier result
+
+let averageDamageFireRay result level =
   2 * spellRank level
   |> float
   |> (*) (averageRoll D6)
   |> (*) (defaultHitMultiplier result)
 
-let damageForceBarrage actions result level =
+let diceDamageFireRay result level =
+  2 * spellRank level
+  |> rollDistribution D6
+  |> toDamageCount defaultHitMultiplier result
+
+let averageDamageForceBarrage actions result level =
   actions * ((spellRank level + 1) / 2)
   |> float
   |> (*) (averageRoll D4 + 1.0)
 
-let damagePropertyRune result level =
+let diceDamageForceBarrage actions result level =
+  actions * ((spellRank level + 1) / 2)
+  |> rollDistribution D4
+  |> applyModifierToDistribution 1
+  |> toDamageCount (fun _ -> 1.0) result
+
+let averageDamagePropertyRune result level =
   float (propertyDice level) * (averageRoll D6)
   |> (*) (defaultHitMultiplier result)
 
-let damageWeapon dieSize result level =
+let averageDamageWeapon dieSize result level =
   float (weaponDice level) * averageRoll dieSize
   |> (*) (defaultHitMultiplier result)
 
-let damageFatal dieSize fatalDieSize result level =
+let averageDamageFatal dieSize fatalDieSize result level =
   match result with
   | CritSuccess -> 
     float (weaponDice level)
@@ -142,14 +183,14 @@ let damageFatal dieSize fatalDieSize result level =
     float (weaponDice level + 1)
     |> (*) (averageRoll fatalDieSize)
   | Success | Fail | CritFail -> 
-    damageWeapon dieSize result level
+    averageDamageWeapon dieSize result level
 
 let damageAttribute attributeSelector result (level: int) =
   attributeSelector level
   |> float
   |> (*) (defaultHitMultiplier result)
 
-let damageDeadly dieSize result level =
+let averageDamageDeadly dieSize result level =
   match result with
   | CritSuccess | CritWithImmunity -> deadlyDice level |> float |> (*) (averageRoll dieSize)
   | Success | Fail | CritFail -> 0.0
@@ -161,51 +202,64 @@ let damageFighterWeaponSpecialization result level =
   defaultHitMultiplier result * float (fighterWeaponSpecialization level)
 
 let martialShortbow level result =
-  [damageDeadly D10; damageWeapon D6; damageMartialWeaponSpecialization] //; damagePropertyRune result]
+  [averageDamageDeadly D10; averageDamageWeapon D6; damageMartialWeaponSpecialization] //; averageDamagePropertyRune result]
   |> Seq.sumBy (fun fn -> fn result level)
 
 let fighterShortbow level result =
-  [damageDeadly D10; damageWeapon D6; damageFighterWeaponSpecialization; damagePropertyRune]
+  [averageDamageDeadly D10; averageDamageWeapon D6; damageFighterWeaponSpecialization; averageDamagePropertyRune]
   |> Seq.sumBy (fun fn -> fn result level)
 
+let diceAbilityDamage poolResultFunction dicePools modifierFunctions level result =
+  dicePools
+  |> rollDistributions 0
+  |> rollCountsToDamageDice
+  |> applyDamageFunctionToDamageDice (*) (poolResultFunction result)
+  |> tuple (modifierFunctions |> Seq.sumBy (fun fn -> fn result level))
+  ||> applyDamageFunctionToDamageDice (+)
+
+let diceFighterShortbow level result =
+  diceAbilityDamage defaultHitMultiplier [D6, propertyDice level; D6, weaponDice level] [damageFighterWeaponSpecialization; averageDamageDeadly D10] level result
+
 let fighterArbalest level result =
-  [damageWeapon D10; damageFighterWeaponSpecialization; damagePropertyRune]
+  [averageDamageWeapon D10; damageFighterWeaponSpecialization; averageDamagePropertyRune]
   |> Seq.sumBy (fun fn -> fn result level)
 
 let martialRepeatingHandCrossbow level result =
-  [damageWeapon D6 result; damageMartialWeaponSpecialization result; damagePropertyRune result]
+  [averageDamageWeapon D6 result; damageMartialWeaponSpecialization result; averageDamagePropertyRune result]
   |> Seq.sumBy (fun fn -> fn level)
 
 let martialArbalest level result =
-  [damageWeapon D10 result; damageMartialWeaponSpecialization result] //; damagePropertyRune result]
+  [averageDamageWeapon D10 result; damageMartialWeaponSpecialization result] //; averageDamagePropertyRune result]
   |> Seq.sumBy (fun fn -> fn level)
 
 let fighterLongsword level result =
-  [damageWeapon D8; damageFighterWeaponSpecialization; damagePropertyRune; damageAttribute (highModifier true)]
+  [averageDamageWeapon D8; damageFighterWeaponSpecialization; averageDamagePropertyRune; damageAttribute (highModifier true)]
   |> Seq.sumBy (fun fn -> fn result level)
 
 let fighterShortsword level result =
-  [damageWeapon D6; damageFighterWeaponSpecialization; damagePropertyRune; damageAttribute (highModifier true)]
+  [averageDamageWeapon D6; damageFighterWeaponSpecialization; averageDamagePropertyRune; damageAttribute (highModifier true)]
   |> Seq.sumBy (fun fn -> fn result level)
 
 let telekineticProjectile level result =
-  [damageTelekineticProjectile result]
+  [averageDamageTelekineticProjectile result]
   |> Seq.sumBy (fun fn -> fn level)
 
 let spout level result =
-  [damageSpout result]
+  [averageDamageSpout result]
   |> Seq.sumBy (fun fn -> fn level)
 
 let tempestSurge level result =
-  [damageTempestSurge result]
+  [averageDamageTempestSurge result]
   |> Seq.sumBy (fun fn -> fn level)
 
 let fireRay level result = 
-  [damageFireRay result]
+  [averageDamageFireRay result]
   |> Seq.sumBy (fun fn -> fn level)
 
 let thunderstrike level result =
-  damageThunderstrike result level
+  averageDamageThunderstrike result level
 
 let forceBarrage actions level result = 
-  damageForceBarrage actions result level
+  averageDamageForceBarrage actions result level
+
+  

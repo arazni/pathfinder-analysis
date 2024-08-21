@@ -24,6 +24,13 @@ let first (x, _) =
 let second (_, x) =
   x
 
+let tuple a b =
+  a, b
+
+
+let flipTuple a b =
+  b, a
+
 let asBool number =
   number = 1
 

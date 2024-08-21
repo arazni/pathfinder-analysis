@@ -1,20 +1,20 @@
-// #r "nuget: FSharp.Json"
-// #r "nuget: Plotly.NET"
+#r "nuget: FSharp.Json"
+#r "nuget: Plotly.NET"
 // #r "nuget: Plotly.NET.ImageExport"
 
 #load "Helpers.fs"
-// #load "Bestiary.fs"
-// #load "Compare.fs"
-// #load "Library.fs"
-// #load "Transform.fs"
+#load "Bestiary.fs"
+#load "Compare.fs"
 #load "DamageDistribution.fs"
+#load "Library.fs"
+#load "Transform.fs"
 // #load "Request.fs"
 
 open PathfinderAnalysis.Helpers
-// open PathfinderAnalysis.Library
-// open PathfinderAnalysis.Bestiary
-// open PathfinderAnalysis.Compare
-// open PathfinderAnalysis.Transform
+open PathfinderAnalysis.Library
+open PathfinderAnalysis.Bestiary
+open PathfinderAnalysis.Compare
+open PathfinderAnalysis.Transform
 open PathfinderAnalysis.DamageDistribution
 // open Plotly.NET
 //open Plotly.NET.ImageExport
@@ -63,3 +63,5 @@ rollDistributions 0 [D12, 4; D6, 3;]
 // |> chunk 20
 // |> chunksToAverages
 
+[CritSuccess]
+|> List.map (Seq.toList << diceFighterShortbow 19)

@@ -4,6 +4,8 @@ module PathfinderAnalysis.DamageDistribution
 
 open PathfinderAnalysis.Helpers
 
+type DamageCount = { Damage: float; Count: bigint }
+
 type RollCount = { Roll: int; Count: bigint }
 
 type DicePool = (int * DiceSize) list
@@ -13,24 +15,49 @@ let rollDistribution dieSize rollCount =
   |> Seq.map (fun i -> { Roll = i; Count = coefficientOfExponentiatedGeometricSeries rollCount (maximumRoll dieSize) i })
 
 let applyModifierToDistribution modifier rollCounts =
+  if modifier = 0 then rollCounts else
   rollCounts
   |> Seq.map (fun rollCount -> { Roll = modifier + rollCount.Roll; Count = rollCount.Count })
 
+let rollCountsToDamageDice rollCounts =
+  rollCounts
+  |> Seq.map (fun rollCount -> { Damage = float rollCount.Roll; Count = rollCount.Count })
+
+let applyDamageModifierToRollCount modifier rollCounts =
+  rollCounts
+  |> Seq.map (fun rollCount -> { Damage = modifier + float rollCount.Roll; Count = rollCount.Count })
+
+let applyDamageFunctionToDamageDice modifierFunction modifier damageCounts =
+  damageCounts
+  |> Seq.map (fun damageCount -> { Damage = modifierFunction modifier damageCount.Damage; Count = damageCount.Count })
+
 let rollDistributions modifier dicePool =
-  if Seq.length dicePool = 1 
-  then rollDistribution (Seq.head dicePool |> first) (Seq.head dicePool |> second)
+  let workingPool = 
+    dicePool
+    |> Seq.filter (fun (_, pool) -> pool > 0)
+    |> Seq.groupBy first
+    |> Seq.map (fun (group, dice) -> group, Seq.sumBy second dice)
+
+  if Seq.length workingPool = 0
+  then Seq.empty
+  else
+
+  if Seq.length workingPool = 1 
+  then rollDistribution (Seq.head workingPool |> first) (Seq.head workingPool |> second)
     |> applyModifierToDistribution modifier
   else
 
   let rolls = 
-    Seq.map (fun (size, number) -> rollDistribution size number) dicePool
+    Seq.map (fun (size, number) -> rollDistribution size number) workingPool
   
   (Seq.head rolls |> applyModifierToDistribution modifier, Seq.tail rolls)
   ||> Seq.fold (fun state rollCountList -> 
     Seq.allPairs state rollCountList
-    |> Seq.map (fun (left, right) -> { Roll = left.Roll + right.Roll; Count = left.Count + right.Count })
+    |> Seq.map (fun (left, right) -> { Roll = left.Roll + right.Roll; Count = left.Count * right.Count }) // does not work, gotta think
     )
-  |> Seq.sortBy (fun rollCount -> rollCount.Roll)
+  |> Seq.groupBy (fun rollCount -> rollCount.Roll)
+  |> Seq.map (fun (roll, rollCounts) -> { Roll = roll; Count = Seq.sumBy (fun counts -> counts.Count) rollCounts }) // bigint (Seq.length workingPool) })
+  |> Seq.sortBy (fun rollCount -> rollCount.Roll )
 
 let getBucketSizes (nBuckets: int) (total: bigint) =
   let bucketSize = total / bigint nBuckets
