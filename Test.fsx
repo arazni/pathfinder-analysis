@@ -54,7 +54,7 @@ open PathfinderAnalysis.DamageDistribution
 
 rollDistributions 0 [D12, 4; D6, 3;]
 |> Seq.toList
-|> chunk 20
+|> chunkRolls 20
 |> chunksToAverages
 |> Seq.toArray
 
@@ -63,5 +63,20 @@ rollDistributions 0 [D12, 4; D6, 3;]
 // |> chunk 20
 // |> chunksToAverages
 
-[CritSuccess]
-|> List.map (Seq.toList << diceFighterShortbow 19)
+// [CritSuccess]
+// |> List.map (Seq.toList << diceFighterShortbow 19)
+// |> chunkDamage 20
+
+// diceFighterShortbow 19 Success
+// |> Seq.toList
+// |> chunkDamage 20
+// |> damageChunksToAverages
+// |> Seq.toList
+
+
+// type ResultDataForRoll<'a> = { Roll: int; Results: (ResultData<'a> seq) }
+// type ResultData<'a> = { Result: 'a; Count: int }
+// type HitResult = CritFail | Fail | Success | CritSuccess | CritWithImmunity
+// type DamageCount = { Damage: float; Count: bigint }
+// need to combine ResultDataForRoll<HitResult> with DamageCount, multiplicatively, bucket them to 20 stacks, then extrapolate to each level and do the graph stuff
+

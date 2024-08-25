@@ -117,3 +117,9 @@ let generateCharts (titleFn: int -> string) flatChartData =
 //   raabl
 //   |> Seq.map (fun (level, rab) -> level, Seq.map (fun (roll, average) -> (21 - roll, average)) rab)
   
+// type ResultDataForRoll<'a> = { Roll: int; Results: (ResultData<'a> seq) }
+// type ResultData<'a> = { Result: 'a; Count: int }
+// type HitResult = CritFail | Fail | Success | CritSuccess | CritWithImmunity
+// type DamageCount = { Damage: float; Count: bigint }
+// need to combine ResultDataForRoll<HitResult> with DamageCount, multiplicatively, bucket them to 20 stacks, then extrapolate to each level and do the graph stuff
+

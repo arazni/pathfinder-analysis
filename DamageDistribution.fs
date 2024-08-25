@@ -10,6 +10,18 @@ type RollCount = { Roll: int; Count: bigint }
 
 type DicePool = (int * DiceSize) list
 
+let rollCountCount rollCount =
+  rollCount.Count
+
+let damageCountCount (damageCount : DamageCount) =
+  damageCount.Count
+
+let rollCountRoll rollCount =
+  rollCount.Roll
+
+let damageCountDamage damageCount =
+  damageCount.Damage
+
 let rollDistribution dieSize rollCount =
   [(rollCount*(minimumRoll dieSize))..(rollCount*(maximumRoll dieSize))]
   |> Seq.map (fun i -> { Roll = i; Count = coefficientOfExponentiatedGeometricSeries rollCount (maximumRoll dieSize) i })
@@ -69,10 +81,16 @@ let getBucketSizes (nBuckets: int) (total: bigint) =
   |> List.map bigint
   |> List.map (fun i -> bucketSize + if i <= halfRemainder + isOdd || i > bigint nBuckets - halfRemainder then bigint 1 else bigint 0)
 
-let chunk nBuckets distribution =
+let chunkAddRollBucket sum count =
+  { Roll = sum.Roll; Count = count; }
+
+let chunkAddDamageBucket sum count = 
+  { Damage = sum.Damage; Count = count; }
+
+let chunk chunkBucketAdder countGetter nBuckets distribution =
   let totalPermutations =
     distribution
-    |> List.sumBy (fun i -> i.Count)
+    |> List.sumBy countGetter
   
   let bucketSizes = getBucketSizes nBuckets totalPermutations
 
@@ -88,11 +106,11 @@ let chunk nBuckets distribution =
 
     while inBucket < bucketCap do
       let sum = distribution[iDistribution]
-      let next = sum.Count - takenFromDistribution
+      let next = countGetter sum - takenFromDistribution
 
       if next + inBucket <= bucketCap then
         inBucket <- inBucket + next
-        slice <- Seq.append [{ Roll = sum.Roll; Count = next }] slice
+        slice <- Seq.append [chunkBucketAdder sum next] slice
         iDistribution <- iDistribution + 1
         takenFromDistribution <- bigint 0
         // printfn "in: %A sumCount: %A sumRoll: %i iDistribution: %i slice: %A" inBucket sum.Count sum.Roll iDistribution slice
@@ -100,7 +118,7 @@ let chunk nBuckets distribution =
         let takenNow = bucketCap - inBucket
         takenFromDistribution <- takenFromDistribution + takenNow
         inBucket <- bucketCap
-        slice <- Seq.append [{ Roll = sum.Roll; Count = takenNow }] slice
+        slice <- Seq.append [chunkBucketAdder sum takenNow] slice
         // printfn "from: %A sumCount: %A sumRoll: %i iDistribution: %i slice: %A" takenFromDistribution sum.Count sum.Roll iDistribution slice
 
     buckets <- Seq.append [slice] buckets
@@ -109,11 +127,26 @@ let chunk nBuckets distribution =
   
   buckets
 
+let chunkRolls =
+  chunk chunkAddRollBucket rollCountCount
+
+let chunkDamage =
+  chunk chunkAddDamageBucket damageCountCount
+
 let chunksToAverages (chunks : RollCount seq seq) =
   chunks
   |> Seq.map (fun rollCounts -> 
     Seq.fold (fun (numerator, denominator) next -> numerator + (next.Count * bigint next.Roll), denominator + next.Count) (bigint 0, bigint 0) rollCounts
     |> fun (x, y) -> float x / float y
+  )
+  |> Seq.rev
+  |> Seq.mapi (fun i x -> i + 1, x)
+
+let damageChunksToAverages (chunks: DamageCount seq seq) =
+  chunks
+  |> Seq.map (fun damageCounts -> 
+    Seq.fold (fun (numerator, denominator) (next: DamageCount) -> numerator + float next.Count * next.Damage, denominator + float next.Count) (0.0, 0.0) damageCounts
+    |> fun (x, y) -> x / y
   )
   |> Seq.rev
   |> Seq.mapi (fun i x -> i + 1, x)
