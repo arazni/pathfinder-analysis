@@ -69,9 +69,9 @@ let transformedResultsForRoll resultTransform contested defenseSelector dcOrAtta
     creatures
     |> Seq.map (fun (creature: Creature: Creature) -> 
         handleRollresult contested defenseSelector creature dcOrAttackModifier d20
-        |> resultTransform)
+        )
     |> Seq.groupBy selfFn
-    |> Seq.map (fun (key, results) -> key, Seq.length results)
+    |> Seq.map (fun (key, results) -> key |> resultTransform, Seq.length results)
     |> Seq.map toResultData
 
 let resultsForRoll contested defenseSelector offenseModifier (creatures: Creature seq) d20 =

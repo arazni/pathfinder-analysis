@@ -126,7 +126,7 @@ let averageDamageTempestSurge result level =
   |> (*) (averageRoll D12)
   |> (*) (defaultCastMultiplier result)
 
-let diceDamageTempestSurge result level =
+let diceDamageTempestSurge level result  =
   spellRank level
   |> rollDistribution D12
   |> toDamageCount defaultCastMultiplier result

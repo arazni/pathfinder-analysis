@@ -2,6 +2,7 @@ module PathfinderAnalysis.Transform
 
 open Compare
 open System.Collections.Generic
+open Helpers
 open Bestiary
 open Plotly.NET
 
@@ -67,7 +68,7 @@ let mergeRollAverages (leftAveragesForRolls: AverageForRoll seq) (rightAveragesF
   |> Seq.map (fun (l, r) -> l.Average + r.Average)
   |> Seq.sort
   |> Seq.mapi (fun i sum -> sum, i / 20 + 1)
-  |> Seq.groupBy (fun (_, rollLuck) -> rollLuck)
+  |> Seq.groupBy second
   |> Seq.map (fun (rollLuck, sums) -> {
     Roll = rollLuck;
     Average = Seq.sumBy (fun (sum, _) -> sum) sums / 20.0

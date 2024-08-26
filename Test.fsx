@@ -74,9 +74,29 @@ rollDistributions 0 [D12, 4; D6, 3;]
 // |> Seq.toList
 
 
-// type ResultDataForRoll<'a> = { Roll: int; Results: (ResultData<'a> seq) }
-// type ResultData<'a> = { Result: 'a; Count: int }
-// type HitResult = CritFail | Fail | Success | CritSuccess | CritWithImmunity
-// type DamageCount = { Damage: float; Count: bigint }
-// need to combine ResultDataForRoll<HitResult> with DamageCount, multiplicatively, bucket them to 20 stacks, then extrapolate to each level and do the graph stuff
+// the below looks good for a single roll to hit, need to handle 2 rolls
+// idea: apply transform to a sequence of hit rolls
 
+let test1 = 
+  transformedResultsByRollForLevel diceFighterShortbow PlayerAttack creatureAc (highFighterAttack true) bestiaryByLevel 2 20
+  |> Seq.collect (fun result -> result.Results)
+  |> Seq.collect (fun resultData -> Seq.map (fun damageCount -> { Damage = damageCount.Damage; Count = damageCount.Count * bigint resultData.Count } ) resultData.Result)
+  |> Seq.groupBy damageCountDamage
+  |> Seq.map (fun (key, damageCounts) -> { Damage = key; Count = Seq.sumBy damageCountCount damageCounts })
+  |> Seq.sortBy damageCountDamage
+  |> Seq.toList
+  |> chunkDamage 20
+  |> damageChunksToAverages
+  |> Seq.toList
+
+let test2 = 
+  transformedResultsByRollForLevel diceDamageTempestSurge CreatureSave middleSave (casterDc true) bestiaryByLevel 2 20
+  |> Seq.collect (fun result -> result.Results)
+  |> Seq.collect (fun resultData -> Seq.map (fun damageCount -> { Damage = damageCount.Damage; Count = damageCount.Count * bigint resultData.Count } ) resultData.Result)
+  |> Seq.groupBy damageCountDamage
+  |> Seq.map (fun (key, damageCounts) -> { Damage = key; Count = Seq.sumBy damageCountCount damageCounts })
+  |> Seq.sortBy damageCountDamage
+  |> Seq.toList
+  |> chunkDamage 20
+  |> damageChunksToAverages
+  |> Seq.toList
