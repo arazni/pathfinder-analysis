@@ -202,7 +202,7 @@ let damageFighterWeaponSpecialization result level =
   defaultHitMultiplier result * float (fighterWeaponSpecialization level)
 
 let martialShortbow level result =
-  [averageDamageDeadly D10; averageDamageWeapon D6; damageMartialWeaponSpecialization] //; averageDamagePropertyRune result]
+  [averageDamageDeadly D10; averageDamageWeapon D6; damageMartialWeaponSpecialization] //; averageDamagePropertyRune]
   |> Seq.sumBy (fun fn -> fn result level)
 
 let fighterShortbow level result =

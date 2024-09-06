@@ -8,7 +8,7 @@ type DamageCount = { Damage: float; Count: bigint }
 
 type RollCount = { Roll: int; Count: bigint }
 
-type DicePool = (int * DiceSize) list
+type DicePool = (int * DiceSize) seq
 
 let rollCountCount rollCount =
   rollCount.Count
@@ -65,7 +65,7 @@ let rollDistributions modifier dicePool =
   (Seq.head rolls |> applyModifierToDistribution modifier, Seq.tail rolls)
   ||> Seq.fold (fun state rollCountList -> 
     Seq.allPairs state rollCountList
-    |> Seq.map (fun (left, right) -> { Roll = left.Roll + right.Roll; Count = left.Count * right.Count }) // does not work, gotta think
+    |> Seq.map (fun (left, right) -> { Roll = left.Roll + right.Roll; Count = left.Count * right.Count })
     )
   |> Seq.groupBy (fun rollCount -> rollCount.Roll)
   |> Seq.map (fun (roll, rollCounts) -> { Roll = roll; Count = Seq.sumBy (fun counts -> counts.Count) rollCounts }) // bigint (Seq.length workingPool) })

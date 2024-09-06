@@ -100,3 +100,81 @@ let test2 =
   |> chunkDamage 20
   |> damageChunksToAverages
   |> Seq.toList
+
+type HitDamagePair = {
+  HitRolls: int * DiceSize;
+  DamagePool: DicePool;
+}
+
+// let allCombinations (input: HitDamagePair) =
+//   Seq.map (fun x -> x) input.HitRolls,
+//   rollDistributions 0 input.DamagePool
+
+// ([1..3],[1..3]) 
+// ||> Seq.allPairs 
+// |> Seq.map (fun x -> seq {first x; second x}) 
+// |> Seq.allPairs [1..3] 
+// |> Seq.map (fun x -> Seq.append (seq { (first x) }) (second x)) 
+// |> Seq.toArray;;
+
+// type Untuple<'a> =
+//   | Pairing of 'a * 'a
+//   | PairList of 'a * ('a list)
+
+// let innerHandle x =
+//   match x with
+//   | Pairing (a, b) -> [a; b]
+//   | PairList (a, b) -> a::b
+
+// ([1..3],[1..3])
+// ||> Seq.allPairs
+// |> Seq.map Pairing
+// |> Seq.map innerHandle
+// |> Seq.allPairs [1..3] 
+// |> Seq.map PairList
+// |> Seq.map innerHandle
+// |> Seq.toArray;;
+
+let permuteDiceRollsWithModifier dieSize rolls rollModifier =
+  let allRolls = seq { rollModifier (minimumRoll dieSize).. rollModifier (maximumRoll dieSize) }
+
+  if rolls = 1 then seq { allRolls } else
+
+  let initial =
+    (allRolls, allRolls)
+    ||> Seq.allPairs
+    |> Seq.map (fun (a, b) -> seq {a; b})
+
+  if rolls = 2 then initial else
+
+  seq { 1 .. rolls - 2}
+  |> Seq.fold (fun state _ -> 
+    Seq.allPairs allRolls state
+    |> Seq.map (fun (a, b) -> Seq.append b (seq { a }))) initial
+
+let allRolls dieSize rollModifier =
+  List.toSeq [rollModifier (minimumRoll dieSize)..rollModifier (maximumRoll dieSize)]
+
+let permuteDiceRolls (allDiceRolls: 'a seq seq) =
+  if Seq.length allDiceRolls = 1 then allDiceRolls else
+
+  let initial =
+    (Seq.head allDiceRolls, Seq.skip 1 allDiceRolls |> Seq.head)
+    ||> Seq.allPairs
+    |> Seq.map (fun (a, b) -> seq {a; b})
+
+  if Seq.length allDiceRolls = 2 then initial else
+
+  Seq.skip 2 allDiceRolls
+  |> Seq.fold (fun state allRolls -> 
+    Seq.allPairs state allRolls
+    |> Seq.map (fun (a, b) -> Seq.append a (seq { b }))) initial
+
+let totalPermutations1 (dicePool: DicePool) =
+  dicePool
+  |> Seq.fold (fun state (count, size) -> state * pown (bigint (maximumRoll size)) count ) (bigint 1)
+
+let totalPermutations (dicePools: DicePool seq) =
+  dicePools
+  |> Seq.fold (fun state pool -> state * totalPermutations1 pool) (bigint 1)
+
