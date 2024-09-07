@@ -115,7 +115,7 @@ let averageDamageSpout result level =
   |> (*) (averageRoll D4)
   |> (*) (defaultCastMultiplier result)
 
-let diceDamageSpout result level =
+let diceDamageSpout level result =
   1 + spellRank level
   |> rollDistribution D4
   |> toDamageCount defaultCastMultiplier result
@@ -219,6 +219,9 @@ let diceAbilityDamage poolResultFunction dicePools modifierFunctions level resul
 
 let diceFighterShortbow level result =
   diceAbilityDamage defaultHitMultiplier [D6, propertyDice level; D6, weaponDice level] [damageFighterWeaponSpecialization; averageDamageDeadly D10] level result
+
+let diceFighterLongbow level result =
+  diceAbilityDamage defaultHitMultiplier [D6, propertyDice level; D8, weaponDice level] [damageFighterWeaponSpecialization; averageDamageDeadly D10] level result
 
 let fighterArbalest level result =
   [averageDamageWeapon D10; damageFighterWeaponSpecialization; averageDamagePropertyRune]

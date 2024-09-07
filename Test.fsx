@@ -52,11 +52,11 @@ open PathfinderAnalysis.DamageDistribution
 // |> chunk 20
 // |> chunksToAverages
 
-rollDistributions 0 [D12, 4; D6, 3;]
-|> Seq.toList
-|> chunkRolls 20
-|> chunksToAverages
-|> Seq.toArray
+// rollDistributions 0 [D12, 4; D6, 3;]
+// |> Seq.toList
+// |> chunkRolls 20
+// |> chunksToAverages
+// |> Seq.toArray
 
 // |> mergeRolls (rollDistribution D6 3)
 // |> List.map (fun (left) -> { Roll = left.Roll + right.Roll; Count = left.Count + right.Count })
@@ -77,104 +77,79 @@ rollDistributions 0 [D12, 4; D6, 3;]
 // the below looks good for a single roll to hit, need to handle 2 rolls
 // idea: apply transform to a sequence of hit rolls
 
-let test1 = 
-  transformedResultsByRollForLevel diceFighterShortbow PlayerAttack creatureAc (highFighterAttack true) bestiaryByLevel 2 20
-  |> Seq.collect (fun result -> result.Results)
-  |> Seq.collect (fun resultData -> Seq.map (fun damageCount -> { Damage = damageCount.Damage; Count = damageCount.Count * bigint resultData.Count } ) resultData.Result)
-  |> Seq.groupBy damageCountDamage
-  |> Seq.map (fun (key, damageCounts) -> { Damage = key; Count = Seq.sumBy damageCountCount damageCounts })
-  |> Seq.sortBy damageCountDamage
-  |> Seq.toList
-  |> chunkDamage 20
-  |> damageChunksToAverages
-  |> Seq.toList
+// let test1 = 
+//   transformedResultsByRollForLevel diceFighterShortbow PlayerAttack creatureAc (highFighterAttack true) bestiaryByLevel 2 20
+//   |> Seq.collect (fun result -> result.Results)
+//   |> Seq.collect (fun resultData -> Seq.map (fun damageCount -> { Damage = damageCount.Damage; Count = damageCount.Count * bigint resultData.Count } ) resultData.Result)
+//   |> Seq.groupBy damageCountDamage
+//   |> Seq.map (fun (key, damageCounts) -> { Damage = key; Count = Seq.sumBy damageCountCount damageCounts })
+//   |> Seq.sortBy damageCountDamage
+//   |> Seq.toList
+//   |> chunkDamage 20
+//   |> damageChunksToAverages
+//   |> Seq.toList
 
-let test2 = 
-  transformedResultsByRollForLevel diceDamageTempestSurge CreatureSave middleSave (casterDc true) bestiaryByLevel 2 20
-  |> Seq.collect (fun result -> result.Results)
-  |> Seq.collect (fun resultData -> Seq.map (fun damageCount -> { Damage = damageCount.Damage; Count = damageCount.Count * bigint resultData.Count } ) resultData.Result)
-  |> Seq.groupBy damageCountDamage
-  |> Seq.map (fun (key, damageCounts) -> { Damage = key; Count = Seq.sumBy damageCountCount damageCounts })
-  |> Seq.sortBy damageCountDamage
-  |> Seq.toList
-  |> chunkDamage 20
-  |> damageChunksToAverages
-  |> Seq.toList
+// let test2 = 
+//   transformedResultsByRollForLevel diceDamageTempestSurge CreatureSave middleSave (casterDc true) bestiaryByLevel 2 20
+//   |> Seq.collect (fun result -> result.Results)
+//   |> Seq.collect (fun resultData -> Seq.map (fun damageCount -> { Damage = damageCount.Damage; Count = damageCount.Count * bigint resultData.Count } ) resultData.Result)
+//   |> Seq.groupBy damageCountDamage
+//   |> Seq.map (fun (key, damageCounts) -> { Damage = key; Count = Seq.sumBy damageCountCount damageCounts })
+//   |> Seq.sortBy damageCountDamage
+//   |> Seq.toList
+//   |> chunkDamage 20
+//   |> damageChunksToAverages
+//   |> Seq.toList
 
-type HitDamagePair = {
-  HitRolls: int * DiceSize;
-  DamagePool: DicePool;
+type DamageContext = {
+  HitRollCount: int;
+  HitModifier: int;
+  Contest: Contested;
+  CreatureDefenseFunction: Creature -> int;
+  DamageFunction: HitResult -> DamageCount seq;
 }
 
-// let allCombinations (input: HitDamagePair) =
-//   Seq.map (fun x -> x) input.HitRolls,
-//   rollDistributions 0 input.DamagePool
+let pcLevel = 1
+let creatureLevel = 1
 
-// ([1..3],[1..3]) 
-// ||> Seq.allPairs 
-// |> Seq.map (fun x -> seq {first x; second x}) 
-// |> Seq.allPairs [1..3] 
-// |> Seq.map (fun x -> Seq.append (seq { (first x) }) (second x)) 
-// |> Seq.toArray;;
+let damageContexts = seq {
+  { HitRollCount = 1; HitModifier = highFighterAttack true pcLevel; Contest = PlayerAttack; CreatureDefenseFunction = creatureAc; DamageFunction = diceFighterLongbow pcLevel};
+  { HitRollCount = 1; HitModifier = highFighterAttack true pcLevel - 5; Contest = PlayerAttack; CreatureDefenseFunction = creatureAc; DamageFunction = diceFighterLongbow pcLevel};
+  { HitRollCount = 2; HitModifier = casterDc true pcLevel; Contest = PlayerAttack; CreatureDefenseFunction = middleSave; DamageFunction = diceDamageSpout pcLevel}
+}
 
-// type Untuple<'a> =
-//   | Pairing of 'a * 'a
-//   | PairList of 'a * ('a list)
+let allPossibleTurnHitRolls = 
+  damageContexts
+  |> Seq.sumBy (fun context -> context.HitRollCount)
+  |> allD20Rolls
+  |> permuteDiceRolls
+  // |> Seq.toList
 
-// let innerHandle x =
-//   match x with
-//   | Pairing (a, b) -> [a; b]
-//   | PairList (a, b) -> a::b
+allPossibleTurnHitRolls
+|> Seq.map (fun turnHitRolls ->
+  let flatContexts = 
+    damageContexts
+    |> Seq.collect (fun context -> Seq.replicate context.HitRollCount context)
 
-// ([1..3],[1..3])
-// ||> Seq.allPairs
-// |> Seq.map Pairing
-// |> Seq.map innerHandle
-// |> Seq.allPairs [1..3] 
-// |> Seq.map PairList
-// |> Seq.map innerHandle
-// |> Seq.toArray;;
+  (turnHitRolls, flatContexts)
+  ||> Seq.map2 (fun hitRoll flatContext -> resultsForRoll PlayerAttack creatureAc flatContext.HitModifier bestiaryByLevel[creatureLevel] hitRoll)
+)
 
-let permuteDiceRollsWithModifier dieSize rolls rollModifier =
-  let allRolls = seq { rollModifier (minimumRoll dieSize).. rollModifier (maximumRoll dieSize) }
+// let attackModifiers = [
+//   highFighterAttack true pcLevel;
+//   highFighterAttack true pcLevel - 5
+// ]
 
-  if rolls = 1 then seq { allRolls } else
+// allD20Rolls (List.length attackModifiers)
+// |> permuteDiceRolls
+// |> Seq.map (fun rolls ->
+//   rolls
+//   |> Seq.mapi (fun attackIndex roll -> resultsForRoll PlayerAttack creatureAc attackModifiers[attackIndex] bestiaryByLevel[creatureLevel] roll)
+//   |> Seq.toList
+// )
+// |> Seq.toList
 
-  let initial =
-    (allRolls, allRolls)
-    ||> Seq.allPairs
-    |> Seq.map (fun (a, b) -> seq {a; b})
+// // |> Seq.map (fun (modifier, rolls) -> Seq.map (fun roll -> roll, resultsForRoll PlayerAttack creatureAc modifier bestiaryByLevel[creatureLevel]) rolls)
+// // |> Seq.map (fun rolls -> Seq.map (fun roll -> roll, resultsForRoll PlayerAttack creatureAc 0 bestiaryByLevel[1] roll) rolls)
 
-  if rolls = 2 then initial else
-
-  seq { 1 .. rolls - 2}
-  |> Seq.fold (fun state _ -> 
-    Seq.allPairs allRolls state
-    |> Seq.map (fun (a, b) -> Seq.append b (seq { a }))) initial
-
-let allRolls dieSize rollModifier =
-  List.toSeq [rollModifier (minimumRoll dieSize)..rollModifier (maximumRoll dieSize)]
-
-let permuteDiceRolls (allDiceRolls: 'a seq seq) =
-  if Seq.length allDiceRolls = 1 then allDiceRolls else
-
-  let initial =
-    (Seq.head allDiceRolls, Seq.skip 1 allDiceRolls |> Seq.head)
-    ||> Seq.allPairs
-    |> Seq.map (fun (a, b) -> seq {a; b})
-
-  if Seq.length allDiceRolls = 2 then initial else
-
-  Seq.skip 2 allDiceRolls
-  |> Seq.fold (fun state allRolls -> 
-    Seq.allPairs state allRolls
-    |> Seq.map (fun (a, b) -> Seq.append a (seq { b }))) initial
-
-let totalPermutations1 (dicePool: DicePool) =
-  dicePool
-  |> Seq.fold (fun state (count, size) -> state * pown (bigint (maximumRoll size)) count ) (bigint 1)
-
-let totalPermutations (dicePools: DicePool seq) =
-  dicePools
-  |> Seq.fold (fun state pool -> state * totalPermutations1 pool) (bigint 1)
-
+// diceFighterLongbow pcLevel

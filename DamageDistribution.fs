@@ -150,3 +150,51 @@ let damageChunksToAverages (chunks: DamageCount seq seq) =
   )
   |> Seq.rev
   |> Seq.mapi (fun i x -> i + 1, x)
+
+// let permuteDiceRollsWithModifier dieSize rolls rollModifier =
+//   let allRolls = seq { rollModifier (minimumRoll dieSize).. rollModifier (maximumRoll dieSize) }
+
+//   if rolls = 1 then seq { allRolls } else
+
+//   let initial =
+//     (allRolls, allRolls)
+//     ||> Seq.allPairs
+//     |> Seq.map (fun (a, b) -> seq {a; b})
+
+//   if rolls = 2 then initial else
+
+//   seq { 1 .. rolls - 2}
+//   |> Seq.fold (fun state _ -> 
+//     Seq.allPairs allRolls state
+//     |> Seq.map (fun (a, b) -> Seq.append b (seq { a }))) initial
+
+let allRolls dieSize rollModifier =
+  List.toSeq [rollModifier (minimumRoll dieSize)..rollModifier (maximumRoll dieSize)]
+
+let allD20Rolls numberOfRolls =
+  [1..numberOfRolls]
+  |> Seq.map (fun _ -> allRolls D20 selfFn)
+
+let permuteDiceRolls (allDiceRolls: 'a seq seq) =
+  if Seq.length allDiceRolls = 1 then allDiceRolls else
+
+  let initial =
+    (Seq.head allDiceRolls, Seq.skip 1 allDiceRolls |> Seq.head)
+    ||> Seq.allPairs
+    |> Seq.map (fun (a, b) -> seq {a; b})
+
+  if Seq.length allDiceRolls = 2 then initial else
+
+  Seq.skip 2 allDiceRolls
+  |> Seq.fold (fun state allRolls -> 
+    Seq.allPairs state allRolls
+    |> Seq.map (fun (a, b) -> Seq.append a (seq { b }))) initial
+
+let totalPermutationsForDicePool (dicePool: DicePool) =
+  dicePool
+  |> Seq.fold (fun state (count, size) -> state * pown (bigint (maximumRoll size)) count ) (bigint 1)
+
+let totalPermutationForDicePools (dicePools: DicePool seq) =
+  dicePools
+  |> Seq.fold (fun state pool -> state * totalPermutationsForDicePool pool) (bigint 1)
+
