@@ -53,7 +53,8 @@ let loadedBestiary =
 let bestiaryByLevel = 
   loadedBestiary
   |> Seq.groupBy (fun b -> b.level)
-  |> dict
+  |> Seq.map (fun (level, creatures) -> level, Seq.toArray creatures)
+  |> Map
 
 let save (file : string) =
   let config = JsonConfig.create(allowUntyped = true)

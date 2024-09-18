@@ -12,6 +12,9 @@ let atLeasts comparisons level =
 let and1 left right1 =
   if left && right1 <> 0 then right1 else 0
 
+let inline divideByFirst a b =
+  b / a
+
 let selfFn x =
   x
 

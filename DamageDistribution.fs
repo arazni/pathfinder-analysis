@@ -3,12 +3,22 @@ module PathfinderAnalysis.DamageDistribution
 // https://www.analyticscheck.net/posts/sums-dice-rolls
 
 open PathfinderAnalysis.Helpers
+open PathfinderAnalysis.Bestiary
+open PathfinderAnalysis.Compare
 
 type DamageCount = { Damage: float; Count: bigint }
 
 type RollCount = { Roll: int; Count: bigint }
 
 type DicePool = (int * DiceSize) seq
+
+type DamageContext = {
+  HitRollCount: int;
+  HitModifier: int;
+  Contest: Contested;
+  CreatureDefenseFunction: Creature -> int;
+  DamageFunction: HitResult -> DamageCount seq;
+}
 
 let rollCountCount rollCount =
   rollCount.Count
@@ -151,29 +161,12 @@ let damageChunksToAverages (chunks: DamageCount seq seq) =
   |> Seq.rev
   |> Seq.mapi (fun i x -> i + 1, x)
 
-// let permuteDiceRollsWithModifier dieSize rolls rollModifier =
-//   let allRolls = seq { rollModifier (minimumRoll dieSize).. rollModifier (maximumRoll dieSize) }
-
-//   if rolls = 1 then seq { allRolls } else
-
-//   let initial =
-//     (allRolls, allRolls)
-//     ||> Seq.allPairs
-//     |> Seq.map (fun (a, b) -> seq {a; b})
-
-//   if rolls = 2 then initial else
-
-//   seq { 1 .. rolls - 2}
-//   |> Seq.fold (fun state _ -> 
-//     Seq.allPairs allRolls state
-//     |> Seq.map (fun (a, b) -> Seq.append b (seq { a }))) initial
-
 let allRolls dieSize rollModifier =
-  List.toSeq [rollModifier (minimumRoll dieSize)..rollModifier (maximumRoll dieSize)]
+  seq { rollModifier (minimumRoll dieSize)..rollModifier (maximumRoll dieSize) }
 
-let allD20Rolls numberOfRolls =
-  [1..numberOfRolls]
-  |> Seq.map (fun _ -> allRolls D20 selfFn)
+let allD20Rolls modifierFunction numberOfRolls =
+  seq { 1..numberOfRolls }
+  |> Seq.map (fun _ -> allRolls D20 modifierFunction)
 
 let permuteDiceRolls (allDiceRolls: 'a seq seq) =
   if Seq.length allDiceRolls = 1 then allDiceRolls else
@@ -198,3 +191,141 @@ let totalPermutationForDicePools (dicePools: DicePool seq) =
   dicePools
   |> Seq.fold (fun state pool -> state * totalPermutationsForDicePool pool) (bigint 1)
 
+let sumHitResultsForDamageContext totalCreatures (damageContext: DamageContext) (resultsSequence: ResultData<HitResult> seq seq) =
+  resultsSequence
+  |> Seq.collect selfFn
+  |> Seq.groupBy (fun result -> result.Result)
+  |> Seq.map (fun (key, group) -> { Result = key; Count = Seq.sumBy (fun (result: ResultData<HitResult>) -> result.Count) group })
+  |> Seq.map (fun resultCount -> 
+    damageContext.DamageFunction resultCount.Result
+    |> Seq.map (fun damageCount -> { Damage = damageCount.Damage * float resultCount.Count; Count = damageCount.Count })
+  )
+  |> Seq.reduce (fun state next ->
+    Seq.map2 (fun left right -> { Damage = left.Damage + right.Damage; Count = left.Count; }) state next)
+  |> Seq.map (fun damageCount -> { Damage = damageCount.Damage / float totalCreatures; Count = damageCount.Count })
+
+let combineDamageCountsFromDamageContexts (damageCountsForTurn: DamageCount seq seq) =
+  damageCountsForTurn
+  |> Seq.reduce (fun state next ->
+    Seq.allPairs state next
+    |> Seq.map (fun (left, right) -> { Damage = left.Damage + right.Damage; Count = left.Count * right.Count })
+  )
+
+let hitResultLookup creatures (damageContexts : DamageContext[]) = 
+  let len = 
+    damageContexts
+    |> Seq.sumBy (fun dContext -> dContext.HitRollCount)
+
+  let flatContexts =
+    damageContexts
+    |> Seq.collect (fun context -> Seq.replicate context.HitRollCount context)
+    |> Seq.toArray
+  
+  seq { 0..len-1 }
+  |> Seq.map (fun i -> i, seq { 1..20 })
+  |> Seq.map (fun (i, rolls) -> 
+    rolls
+    |> Seq.map (fun roll -> 
+      resultsForRoll flatContexts[i].Contest flatContexts[i].CreatureDefenseFunction flatContexts[i].HitModifier creatures roll
+      |> Seq.toList
+    )
+    |> Seq.toArray
+  )
+  |> Seq.toArray
+
+let damageResultLookup (damageContexts: DamageContext[]) =
+  let allResults = [| CritFail; Fail; Success; CritWithImmunity; CritSuccess |]
+  damageContexts
+  |> Seq.map (fun dc -> dc.DamageFunction)
+  |> Seq.map (fun df -> 
+    allResults
+    |> Seq.map (fun result -> result, df result |> Seq.toList)
+    |> Map
+  )
+  |> Seq.toArray
+
+let hitDamageIndexPairs (damageContexts: DamageContext[]) =
+    damageContexts
+  |> Seq.mapi (fun damageIndex context -> damageIndex, context.HitRollCount)
+  |> Seq.collect (fun (damageIndex, hitRollCount) -> Seq.replicate hitRollCount damageIndex)
+  |> Seq.mapi (fun hitIndex damageIndex -> hitIndex, damageIndex)
+  |> Seq.toArray
+
+let hitDamageLookup creatures (damageContexts: DamageContext[]) =
+  let allHitIndexes = [| 0..19 |]
+  let hitLookup = hitResultLookup creatures damageContexts
+  let damageLookup = damageResultLookup damageContexts
+  let creatureCount = Array.length creatures |> float
+
+  let indexPairs = hitDamageIndexPairs damageContexts
+
+  indexPairs
+  |> Seq.map (fun (hitIndex, damageIndex) -> 
+    allHitIndexes
+    |> Seq.map (fun roll ->
+      let damageCountsPerResult = 
+        hitLookup[hitIndex][roll]
+        |> Seq.map (fun hitResultCount -> { Result = damageLookup[damageIndex][hitResultCount.Result]; Count = hitResultCount.Count })
+        |> Seq.map (fun damageResultCount -> 
+          damageResultCount.Result
+          |> Seq.map (fun damageCount -> { Damage = damageCount.Damage * float damageResultCount.Count; Count = damageCount.Count })
+          |> Seq.toArray
+        )
+
+      seq { 0..(Seq.head damageCountsPerResult |> Array.length) - 1}
+      |> Seq.map (fun i ->
+        {
+          Damage = 
+            damageCountsPerResult 
+            |> Seq.sumBy (fun damageCounts -> damageCounts[i].Damage)
+            |> divideByFirst creatureCount;
+          Count = ((Seq.head damageCountsPerResult)[i]).Count
+        })
+      |> Seq.toArray
+    )
+    |> Seq.toArray
+  )
+  |> Seq.toArray
+
+let damageCountsFromHitDamageLookup (hitDamageLookup: DamageCount[][][]) hitRollIndex rollValueIndex =
+  hitDamageLookup[hitRollIndex][rollValueIndex]
+
+let theBigThing creatures (damageContexts: DamageContext[]) =
+  let hitRollsPerTurn =
+    damageContexts
+    |> Seq.sumBy (fun context -> context.HitRollCount)
+
+  let allHitRollsPerTurns =
+    hitRollsPerTurn
+    |> allD20Rolls ((+) -1)
+    |> permuteDiceRolls
+    |> Seq.map Seq.toArray
+    |> Seq.toArray
+
+  let lookup = hitDamageLookup creatures damageContexts
+
+  let indexPairs = hitDamageIndexPairs damageContexts
+
+  allHitRollsPerTurns
+  |> Seq.map (fun rollValueIndexesForTurn ->
+    rollValueIndexesForTurn
+    |> Seq.mapi (fun rollIndex rollValueIndex -> second indexPairs[rollIndex], damageCountsFromHitDamageLookup lookup rollIndex rollValueIndex)
+    |> Seq.groupBy first
+    |> Seq.map (fun (_, damageCountPairs) ->
+      let damageCountsForSingleDamageRoll = Seq.map second damageCountPairs
+
+      Seq.head damageCountsForSingleDamageRoll
+      |> Seq.mapi (fun damageIndex damageRoll -> { 
+        Damage = damageCountsForSingleDamageRoll |> Seq.sumBy (fun x -> x[damageIndex].Damage)
+        Count = damageRoll.Count
+      })
+    )
+    |> combineDamageCountsFromDamageContexts
+  )
+  |> Seq.collect selfFn
+  |> Seq.groupBy damageCountDamage
+  |> Seq.sortBy first
+  |> Seq.map (fun (damage, damageCounts) -> { Damage = damage; Count = damageCounts |> Seq.sumBy damageCountCount })
+  |> Seq.toList
+  |> chunkDamage 20
+  |> damageChunksToAverages
