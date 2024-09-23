@@ -169,7 +169,7 @@ let allD20Rolls modifierFunction numberOfRolls =
   |> Seq.map (fun _ -> allRolls D20 modifierFunction)
 
 let permuteDiceRolls (allDiceRolls: 'a seq seq) =
-  if Seq.length allDiceRolls = 1 then allDiceRolls else
+  if Seq.length allDiceRolls = 1 then allDiceRolls |> Seq.head |> Seq.map (fun roll -> seq { roll }) else
 
   let initial =
     (Seq.head allDiceRolls, Seq.skip 1 allDiceRolls |> Seq.head)
@@ -313,7 +313,7 @@ let theBigThing creatures (damageContexts: DamageContext[]) =
     |> Seq.groupBy first
     |> Seq.map (fun (_, damageCountPairs) ->
       let damageCountsForSingleDamageRoll = Seq.map second damageCountPairs
-
+      // printfn "%A" damageCountsForSingleDamageRoll
       Seq.head damageCountsForSingleDamageRoll
       |> Seq.mapi (fun damageIndex damageRoll -> { 
         Damage = damageCountsForSingleDamageRoll |> Seq.sumBy (fun x -> x[damageIndex].Damage)
@@ -326,6 +326,15 @@ let theBigThing creatures (damageContexts: DamageContext[]) =
   |> Seq.groupBy damageCountDamage
   |> Seq.sortBy first
   |> Seq.map (fun (damage, damageCounts) -> { Damage = damage; Count = damageCounts |> Seq.sumBy damageCountCount })
+
+let damageCountsToAverage damageCounts =
+  damageCounts
+  |> Seq.sumBy (fun dc -> dc.Damage * float dc.Count)
+  |> divideByFirst (Seq.sumBy damageCountCount damageCounts |> float)
+
+let bigThingStandardChunk creatures (damageContexts: DamageContext[]) =
+  theBigThing creatures damageContexts
   |> Seq.toList
   |> chunkDamage 20
   |> damageChunksToAverages
+  |> Seq.toArray

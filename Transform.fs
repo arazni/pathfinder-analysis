@@ -33,10 +33,10 @@ let resultsToAverage (resultAndAverageDamageSeq: ResultData<float> seq) =
 let rollAveragesToAverage (rollAndAverageDamage: AverageForRoll seq) =
   Seq.sumBy (fun x -> x.Average) rollAndAverageDamage / float (Seq.length rollAndAverageDamage)
 
-let transformedResultsByRollForLevel resultTransform contested defenseSelector offenseModifier (creaturesByLevel: IDictionary<int, seq<Creature>>) creatureLevelDiff playerLevel =
+let transformedResultsByRollForLevel resultTransform contested defenseSelector offenseModifier (creaturesByLevel: Map<int, Creature[]>) creatureLevelDiff playerLevel =
   transformedResultsByRoll (resultTransform playerLevel) contested defenseSelector (offenseModifier playerLevel) creaturesByLevel[playerLevel + creatureLevelDiff]
 
-let transformedResultsByRollByLevel resultTransform contested defenseSelector offenseModifier (creaturesByLevel: IDictionary<int, seq<Creature>>) creatureLevelDiff =
+let transformedResultsByRollByLevel resultTransform contested defenseSelector offenseModifier (creaturesByLevel: Map<int, Creature[]>) creatureLevelDiff =
   pcLevels
   |> Seq.map (fun level -> level, transformedResultsByRollForLevel resultTransform contested defenseSelector offenseModifier creaturesByLevel creatureLevelDiff level)
   |> Seq.map toResultDataByRollForLevel
@@ -102,6 +102,19 @@ let generateCharts (titleFn: int -> string) flatChartData =
     |> Chart.withTitle (titleFn level)
     |> Chart.withSize (800.0, 800.0)
   )
+
+let chunksToFlatChartData title level (buckets: (int*float)[]) =
+  {
+    Title = title;
+    Level = level;
+    AveragesByRoll = 
+      buckets
+      |> Seq.map (fun (rollLuck, damage) -> { Roll = rollLuck; Average = damage })
+  }
+
+let chunksByLevelToFlatChartData title (bucketsByLevel: (int * float)[] seq) =
+  bucketsByLevel
+  |> Seq.mapi (fun i buckets -> chunksToFlatChartData title (i+1) buckets)
 
 // let resultsByRollByLevelToXyz (rbrbl: seq<int * seq<int * seq<float * int>>>) =
 //   rbrbl

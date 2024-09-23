@@ -209,6 +209,10 @@ let fighterShortbow level result =
   [averageDamageDeadly D10; averageDamageWeapon D6; damageFighterWeaponSpecialization; averageDamagePropertyRune]
   |> Seq.sumBy (fun fn -> fn result level)
 
+let fighterLongbow level result =
+  [averageDamageDeadly D10; averageDamageWeapon D8; damageFighterWeaponSpecialization; averageDamagePropertyRune]
+  |> Seq.sumBy (fun fn -> fn result level)
+
 let diceAbilityDamage poolResultFunction dicePools modifierFunctions level result =
   dicePools
   |> rollDistributions 0
