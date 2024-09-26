@@ -1,7 +1,6 @@
 module PathfinderAnalysis.Transform
 
 open Compare
-open System.Collections.Generic
 open Helpers
 open Bestiary
 open Plotly.NET
@@ -74,6 +73,33 @@ let mergeRollAverages (leftAveragesForRolls: AverageForRoll seq) (rightAveragesF
     Average = Seq.sumBy (fun (sum, _) -> sum) sums / 20.0
   })
 
+let mergeNRollAverages (averagesForRollsList: AverageForRoll seq list) =
+  let head = averagesForRollsList[0]
+  let nextHead = averagesForRollsList[1]
+  let tail = List.skip 2 averagesForRollsList
+  let count = List.length averagesForRollsList
+
+  let start = 
+    Seq.allPairs head nextHead
+    |> Seq.map (fun (left, right) -> [left; right])
+    |> Seq.toList
+
+  (start, tail)
+  ||> Seq.fold (fun state next -> 
+    state
+    |> Seq.allPairs next
+    |> Seq.map (fun (left, right) -> left::right)
+    |> Seq.toList
+  )
+  |> Seq.map (fun list -> list |> Seq.sumBy (fun x -> x.Average))
+  |> Seq.sort
+  |> Seq.mapi (fun i sum -> i / (pown 20 count + 1), sum)
+  |> Seq.groupBy first
+  |> Seq.map (fun (rollLuck, sums) -> {
+    Roll = rollLuck;
+    Average = Seq.sumBy second sums / 20.0**count
+  })
+
 let mergeRollAveragesByLevel (left: AverageByRollForLevel seq) (right: AverageByRollForLevel seq) =
   right
   |> Seq.zip left
@@ -82,6 +108,34 @@ let mergeRollAveragesByLevel (left: AverageByRollForLevel seq) (right: AverageBy
     AveragesByRoll = mergeRollAverages l.AveragesByRoll r.AveragesByRoll
   })
 
+let mergeNRollAveragesByLevel (mergeList: AverageByRollForLevel seq seq) =
+  mergeList
+  |> Seq.collect selfFn
+  |> Seq.groupBy (fun x -> x.Level)
+  |> Seq.map (fun (level, averageByRollSeq) -> {
+    Level = level;
+    AveragesByRoll =
+      averageByRollSeq
+      |> Seq.collect (fun abrfl -> abrfl.AveragesByRoll)
+      |> Seq.groupBy (fun afr -> afr.Roll)
+      |> Seq.map second
+      |> Seq.toList
+      |> mergeNRollAverages
+  })
+
+let mapMerge2Damages attackFunction creatureLevelBump mapPenalty (damageFunctions: (int -> HitResult -> float) * (int -> HitResult -> float)) =
+  (
+    transformedResultsByRollByLevel (first damageFunctions) PlayerAttack creatureAc attackFunction bestiaryByLevel creatureLevelBump
+    |> Seq.map resultRollsToAverages,
+    transformedResultsByRollByLevel (second damageFunctions) PlayerAttack creatureAc ((+) -mapPenalty << attackFunction) bestiaryByLevel creatureLevelBump
+    |> Seq.map resultRollsToAverages
+  )
+  ||> mergeRollAveragesByLevel
+  |> Seq.toArray
+
+let mapMerge attackFunction creatureLevelBump mapPenalty damageFunction =
+  mapMerge2Damages attackFunction creatureLevelBump mapPenalty (damageFunction, damageFunction)  
+
 let generateCharts (titleFn: int -> string) flatChartData =
   flatChartData
   |> Seq.groupBy (fun flatData -> flatData.Level)
@@ -89,7 +143,7 @@ let generateCharts (titleFn: int -> string) flatChartData =
     flatDataList
     |> Seq.map (fun flatData -> 
       Chart.Line(
-        xy = Seq.map(fun abr -> (abr.Roll, abr.Average)) flatData.AveragesByRoll,
+        xy = Seq.map(fun abr -> abr.Roll, abr.Average) flatData.AveragesByRoll,
         ShowMarkers = true,
         Name = sprintf "%s %.1f" flatData.Title (rollAveragesToAverage flatData.AveragesByRoll)
       )
@@ -98,10 +152,37 @@ let generateCharts (titleFn: int -> string) flatChartData =
     |> Chart.withLineStyle(Shape = StyleParam.Shape.Hvh)
     |> Chart.withXAxisStyle("Player Roll Luck")
     |> Chart.withYAxisStyle("Average Damage")
-    // |> Chart.withTitle (sprintf "Middle Save - Level %i - Spout Cantrip vs. Martial Arbalest Against Level %i Creatures" level (level+2))
     |> Chart.withTitle (titleFn level)
     |> Chart.withSize (800.0, 800.0)
   )
+
+let generateLevelScaleChart (title: string) flatChartData =
+  flatChartData
+  |> Seq.groupBy (fun flatData -> flatData.Title)
+  |> Seq.map (fun (title, dataForTitle) ->
+    title,
+    dataForTitle
+    |> Seq.groupBy (fun data -> data.Level)
+    |> Seq.map (fun (level, dataForLevel) ->
+      level,
+      dataForLevel
+      |> Seq.sumBy (fun data -> data.AveragesByRoll |> Seq.sumBy (fun averageForRoll -> averageForRoll.Average))
+      |> divideByFirst 20.0 // 20 dice sides
+    )
+  )
+  |> Seq.map (fun (title, xys) -> 
+    Chart.Line(
+      xy = xys,
+      ShowMarkers = true,
+      Name = sprintf "%s %.1f" title (xys |> Seq.sumBy second |> divideByFirst 20.0) // 20 levels
+    )
+  )
+  |> Chart.combine
+  |> Chart.withLineStyle(Shape = StyleParam.Shape.Hvh)
+  |> Chart.withXAxisStyle "Level"
+  |> Chart.withYAxisStyle "Average Damage of Average Roll Luck"
+  |> Chart.withTitle title
+  |> Chart.withSize (800.0, 800.0)
 
 let chunksToFlatChartData title level (buckets: (int*float)[]) =
   {

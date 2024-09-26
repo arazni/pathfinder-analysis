@@ -2,6 +2,7 @@ module PathfinderAnalysis.Bestiary
 
 open FSharp.Json
 open System.IO
+open Helpers
 
 type Creature = {
     name: string
@@ -60,3 +61,9 @@ let save (file : string) =
   let config = JsonConfig.create(allowUntyped = true)
   let json = Json.serializeEx config loadedBestiary
   File.WriteAllText(file, json)
+
+let average (creatureDefenseFn: Creature -> int) level =
+  bestiaryByLevel[level]
+  |> Array.sumBy (fun creature -> creatureDefenseFn creature)
+  |> float
+  |> divideByFirst (bestiaryByLevel[level].Length |> float)
