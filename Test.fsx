@@ -16,6 +16,30 @@ open PathfinderAnalysis.Bestiary
 open PathfinderAnalysis.Compare
 open PathfinderAnalysis.Transform
 open PathfinderAnalysis.DamageDistribution
+
+let creatureLevelBump = 2
+let tripleShotForLevel = transformedResultsByRollForLevel fighterLongbow PlayerAttack creatureAc ((+) -4 << highFighterAttack true) bestiaryByLevel creatureLevelBump
+
+([1..20], Seq.replicate 3 tripleShotForLevel)
+||> prepMergeNRollAverages
+|> Seq.map mergeNRollAverages
+
+// transformedResultsByRollByLevel fighterLongbow PlayerAttack creatureAc ((+) -4 << highFighterAttack true) bestiaryByLevel creatureLevelBump
+// |> Seq.map resultRollsToAverages
+// |> Seq.toList
+// |> List.replicate 3
+// |> mergeNRollAveragesByLevel
+
+let test = List.replicate 4 [1..20]
+
+test
+|> List.skip 1
+|> List.fold (fun state next ->
+  List.allPairs state next
+  |> List.map (fun (l, r) -> l + r)
+) (List.head test)
+|> List.length
+
 // open Plotly.NET
 //open Plotly.NET.ImageExport
 

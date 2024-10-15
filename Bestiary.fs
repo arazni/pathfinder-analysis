@@ -4,11 +4,15 @@ open FSharp.Json
 open System.IO
 open Helpers
 
+// "hp": "(\d*).*",
+// "hp": \1,
+
 type Creature = {
     name: string
     level: int
     rarity: string
     ac: int
+    hp: int
     fortitude: int
     reflex: int
     will: int
@@ -34,11 +38,29 @@ let middleSave creature =
   |> Seq.head
   |> (+) creature.hasMagicBonus
 
+let reflexSave creature =
+  creature.reflex + creature.hasMagicBonus
+
+let willSave creature =
+  creature.will + creature.hasMagicBonus
+
+let fortitudeSave creature =
+  creature.fortitude + creature.hasMagicBonus
+
 let creatureDc save =
   save + 10
 
 let creatureAc creature =
   creature.ac
+
+let creatureHp creature =
+  creature.hp
+
+let averageHp creatures =
+  creatures
+  |> Array.sumBy creatureHp
+  |> float
+  |> divideByFirst (float creatures.Length)
 
 let shadowSignet creature =
   creature.ac |> min (creatureDc creature.fortitude) |> min (creatureDc creature.reflex)

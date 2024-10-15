@@ -30,6 +30,12 @@ let fighterWeaponSpecialization level =
   | x when x < 15 -> atLeasts [1; 1; 5; 13] level
   | _ -> 2 * atLeasts [1; 1; 5; 13] level
 
+let barbarianRageDamage level = // dragon instinct
+  match level with
+  | x when x < 7 -> 4
+  | x when x < 15 -> 8
+  | _ -> 16
+
 let spellProficiency level= 
   level + 2 * atLeasts [1; 7; 15; 19] level
 
@@ -83,6 +89,11 @@ let defaultHitMultiplier result =
   | Fail -> 0.0
   | CritFail -> 0.0
 
+let notCritFailMultiplier result =
+  match result with
+  | CritFail -> 0.0
+  | _ -> 1.0
+
 let averageDamageNeedleDarts result level =
   2 + spellRank level
   |> float
@@ -131,24 +142,54 @@ let diceDamageTempestSurge level result  =
   |> rollDistribution D12
   |> toDamageCount defaultCastMultiplier result
 
+let averageDamageDragonBreath level result =
+  2 * spellRank level - 1
+  |> float
+  |> (*) (averageRoll D6)
+  |> (*) (defaultCastMultiplier result)
+
+let diceDamageDragonBreath level result =
+  2 * spellRank level - 1
+  |> rollDistribution D6
+  |> toDamageCount defaultCastMultiplier result
+
 let averageDamageThunderstrike result level =
   spellRank level
   |> float
   |> (*) (averageRoll D12 + averageRoll D4)
   |> (*) (defaultCastMultiplier result)
 
-let diceDamageThunderstrike result level = 
+let diceDamageThunderstrike level result = 
   seq {D12, spellRank level; D4, spellRank level}
   |> rollDistributions 0
   |> toDamageCount defaultCastMultiplier result
 
-let averageDamageFireRay result level =
+let averageSorcererThunderstrike result level =
+  spellRank level
+  |> float
+  |> (*) (averageRoll D12 + averageRoll D4)
+  |> (+) (spellRank level |> float)
+  |> (*) (defaultCastMultiplier result)
+
+let diceSorcererThunderstrike level result = 
+  seq {D12, spellRank level; D4, spellRank level}
+  |> rollDistributions (spellRank level)
+  |> toDamageCount defaultCastMultiplier result
+
+let averageDamageFireRayMove result level =
   2 * spellRank level
   |> float
   |> (*) (averageRoll D6)
   |> (*) (defaultHitMultiplier result)
 
-let diceDamageFireRay result level =
+let averageDamageFireRayStay result level =
+  spellRank level
+  |> float
+  |> (*) (averageRoll D6)
+  |> (*) (notCritFailMultiplier result)
+  |> (+) (averageDamageFireRayMove result level)
+
+let diceDamageFireRayMove result level =
   2 * spellRank level
   |> rollDistribution D6
   |> toDamageCount defaultHitMultiplier result
@@ -158,7 +199,7 @@ let averageDamageForceBarrage actions result level =
   |> float
   |> (*) (averageRoll D4 + 1.0)
 
-let diceDamageForceBarrage actions result level =
+let diceDamageForceBarrage actions level result =
   actions * ((spellRank level + 1) / 2)
   |> rollDistribution D4
   |> applyModifierToDistribution 1
@@ -201,6 +242,9 @@ let damageMartialWeaponSpecialization result level =
 let damageFighterWeaponSpecialization result level =
   defaultHitMultiplier result * float (fighterWeaponSpecialization level)
 
+let damageDragonRage result level =
+  defaultHitMultiplier result * float (barbarianRageDamage level)
+
 let martialShortbow level result =
   [averageDamageDeadly D10; averageDamageWeapon D6; damageMartialWeaponSpecialization] //; averageDamagePropertyRune]
   |> Seq.sumBy (fun fn -> fn result level)
@@ -227,6 +271,20 @@ let diceFighterShortbow level result =
 let diceFighterLongbow level result =
   diceAbilityDamage defaultHitMultiplier [D6, propertyDice level; D8, weaponDice level] [damageFighterWeaponSpecialization; averageDamageDeadly D10] level result
 
+let averageFighterGreatsword level result =
+  [averageDamageWeapon D12; damageFighterWeaponSpecialization; averageDamagePropertyRune; damageAttribute (highModifier true)]
+  |> Seq.sumBy (fun fn -> fn result level)
+
+let averageBarbarianGreatsword level result =
+  [averageDamageWeapon D12; damageMartialWeaponSpecialization; averageDamagePropertyRune; damageDragonRage; damageAttribute (highModifier true)]
+  |> Seq.sumBy (fun fn -> fn result level)
+
+let diceFighterGreatsword level result = 
+  diceAbilityDamage defaultHitMultiplier [D12, weaponDice level; D6, propertyDice level] [damageFighterWeaponSpecialization; damageAttribute (highModifier true)] level result
+
+let diceBarbarianGreatsword level result =
+  diceAbilityDamage defaultHitMultiplier [D12, weaponDice level; D6, propertyDice level] [damageMartialWeaponSpecialization; damageAttribute (highModifier true); damageDragonRage] level result
+
 let fighterArbalest level result =
   [averageDamageWeapon D10; damageFighterWeaponSpecialization; averageDamagePropertyRune]
   |> Seq.sumBy (fun fn -> fn result level)
@@ -243,9 +301,15 @@ let fighterLongsword level result =
   [averageDamageWeapon D8; damageFighterWeaponSpecialization; averageDamagePropertyRune; damageAttribute (highModifier true)]
   |> Seq.sumBy (fun fn -> fn result level)
 
+let diceFighterLongsword level result = 
+  diceAbilityDamage defaultHitMultiplier [D8, weaponDice level; D6, propertyDice level] [damageFighterWeaponSpecialization; damageAttribute (highModifier true)] level result
+
 let fighterShortsword level result =
   [averageDamageWeapon D6; damageFighterWeaponSpecialization; averageDamagePropertyRune; damageAttribute (highModifier true)]
   |> Seq.sumBy (fun fn -> fn result level)
+
+let diceFighterShortsword level result = 
+  diceAbilityDamage defaultHitMultiplier [D6, weaponDice level; D6, propertyDice level] [damageFighterWeaponSpecialization; damageAttribute (highModifier true)] level result
 
 let telekineticProjectile level result =
   [averageDamageTelekineticProjectile result]
@@ -259,9 +323,11 @@ let tempestSurge level result =
   [averageDamageTempestSurge result]
   |> Seq.sumBy (fun fn -> fn level)
 
-let fireRay level result = 
-  [averageDamageFireRay result]
-  |> Seq.sumBy (fun fn -> fn level)
+let fireRayMove level result = 
+  averageDamageFireRayMove result level
+
+let fireRayStay level result =
+  averageDamageFireRayStay result level
 
 let thunderstrike level result =
   averageDamageThunderstrike result level
