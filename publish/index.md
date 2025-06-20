@@ -16,7 +16,7 @@ My analyses do compare against every creature as of a certain date, but they are
 
 You will never cast Fireball or use Vicious Swing against every single creature in the bestiary at once. You will always be in a situation where some subset of actions are optimal (casting fireball against low reflex enemies with weakness to fire), some are totally fine (swinging a greatsword at a creature with some slashing resistance), and some are ill-advised (using a precise finisher against a precision-immune enemy).
 
-That being said, I do plan to do my best to keep this critique in mind. Especially because, the general goal here is to compare things that are generally good to other things that are generally good across classes.
+That being said, I do plan to do my best to keep this critique in mind. However, the general goal here is to compare things that are generally good to other things that are generally good across classes rather than dig deep into specific optimization niches.
 
 ### Rarity and Analysis
 
