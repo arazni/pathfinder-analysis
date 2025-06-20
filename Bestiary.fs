@@ -71,7 +71,7 @@ let load file =
   |> Json.deserializeEx<Creature[]> config
 
 let loadedBestiary = 
-  load "Data\\bestiary.json"
+  load "../Data/bestiary.json"
 
 let bestiaryByLevel = 
   loadedBestiary
