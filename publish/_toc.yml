@@ -1,0 +1,6 @@
+format: jb-book
+root: index
+chapters:
+- file: how-is-pathfinder-balanced.md
+- file: testing.ipynb
+- file: hp.ipynb
