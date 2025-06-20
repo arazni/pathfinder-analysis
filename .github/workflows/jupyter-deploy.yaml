@@ -4,8 +4,8 @@ on:
   push:
     branches:
     - main
-    paths:
-    - publish/**
+    # paths:
+    # - publish/**
 
 # This job installs dependencies, builds the book, and pushes it to `gh-pages`
 jobs:
@@ -39,7 +39,7 @@ jobs:
 
     - name: Build the book
       run: |
-        jupyter-book build .
+        jupyter-book build ./publish/
 
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
