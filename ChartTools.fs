@@ -8,7 +8,7 @@ open Transform
 open DamageDistribution
 open Plotly.NET
 
-let chartWidth = 1400
+let chartWidth = 1000
 let chartHeight = 800
 
 type SaveSelector =

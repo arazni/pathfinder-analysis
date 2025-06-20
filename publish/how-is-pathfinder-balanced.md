@@ -230,4 +230,5 @@ Costs:
 
 ### There's a rough assumption of party capability
 
+[Michael Sayre](https://paizo.com/threads/rzs43vmk&page=2?Michael-Sayre-on-Casters-Balance-and-Wizards#79):
 > The game assumes that any given party has roughly the capabilities of a cleric, fighter, rogue, and wizard who are using the full breadth of their capabilities. You can shake that formula by shifting more of a particular type of responsibility onto one character or hyper-specializing the group into a particular tactical spread, but hyper-specialization will always come with the risk that you encounter a situation your specialty just isn't good for, even (perhaps especially) if that trick is focus-fire damage.
