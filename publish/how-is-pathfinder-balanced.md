@@ -24,19 +24,21 @@ Let's start by establishing a baseline set of martial weapons that we can then m
 For someone using melee martial weapons, I recommend comparing against the baseline of the longsword or greatsword. Or, you can compare against the bastard sword, which is a d8 in one hand and a d12 in two hands, but otherwise traitless. The shortsword is great for classes looking for weapons that are both agile and finesse.
 
 Melee:
-d12 - Greatsword. 2 hands. 1 trait.
-d10 - Halberd. 2 hands. Reach + 1 trait.
-d8 - Longsword. 1 hand. 1 trait.
-d6 - Shortsword. 1 hand. Finesse + Agile + 1 trait. Or Uncommon Reach.
-d4 - Almost anything goes.
+
+- d12 Greatsword. 2 hands. 1 trait.
+- d10 Halberd. 2 hands. Reach + 1 trait.
+- d8 Longsword. 1 hand. 1 trait.
+- d6 Shortsword. 1 hand. Finesse + Agile + 1 trait. Or Uncommon Reach.
+- d4 Almost anything goes.
 
 For ranged martial weapons, I recommend comparing against the baseline of the shortbow, which requires 1+ hands (2 hands to use, but no actions to adjust grip) and is Reload 0.
 
 Ranged:
-d10 - Harmona Gun. 2 hands. Reload 1. 150ft. 1 trait.
-d8 - Sukgung. 1 hand. Reload 1. 200ft. 1 trait.
-d6 - Shortbow. 1+ hands. Reload 0. 60ft. 1/2 traits.
-d4 - Almost anything goes.
+
+- d10 Harmona Gun. 2 hands. Reload 1. 150ft. 1 trait.
+- d8  Sukgung. 1 hand. Reload 1. 200ft. 1 trait.
+- d6 Shortbow. 1+ hands. Reload 0. 60ft. 1/2 traits.
+- d4 Almost anything goes.
 
 You'll notice right away that ranged weapons don't reach d12 (backpack weapons with 1-minute reloads excluded).
 
@@ -141,7 +143,7 @@ If we treat longsword as the baseline, it scales from 1d8+8 to 4d8+13 in the han
 
 ## Spells
 
-Spells in particular are somewhat interesting because they don't require any hands or action cost unless you're supplementing with scrolls, staves, and wands. In that way, they typically ignore all of the tradeoffs above. However, they come with their own separate tradeoffs, usually by being a limited resource or by requiring two actions for their usage.
+Spells in particular are somewhat interesting because they don't require any hands or action cost unless you're supplementing with scrolls, staves, and wands. In that way, they typically ignore all of the tradeoffs weapons experience. However, they come with their own separate tradeoffs, usually by being a limited resource or by requiring two actions for their usage.
 
 ### Cantrips
 
@@ -150,6 +152,7 @@ Gains:
 - Infinite usage
 - Auto-scaling
 - Usually get about 5 if you're a caster, 2 if you're hybrid
+- Often can pick ones to enable targeting a weakness or work around a resistance
 
 Costs:
 
@@ -170,6 +173,11 @@ Costs:
 
 - Typically requires feats to gain access
 - Usually 2 actions, but some 1-action attack spells
+- Typically too few available to you pivot to a different focus spell in bad matchups
+
+Mitigation:
+
+- Around level 11, many classes get access to an item that grants a focus spell recharge once per day
 
 ### Slotted Spells
 
@@ -177,9 +185,16 @@ Gains:
 
 - Strong AoE spells
 - Strong, ranged single-target damage that competes with melee martials available to some traditions
+  - e.g.: Force Barrage and Thunderstrike
+- Sustainable spells for solid 3rd actions that do recurring damage
+  - e.g.: Floating Flame
 - Large variety of effects
 - Lower ranks are spammable in late-game
-- Higher rank AoEs keep the standard damage scaling but are much easier to use and affect much more average
+- Higher rank AoEs keep the standard damage scaling but are much easier to use and affect much more on average
+- Fail-fishing AoE status conditions to be more likely to have a large impact on some creatures
+  - e.g.: 5th rank Command, 3rd rank Fear
+- Buy time or turn-tides with battlefield control and walls
+- Abundance of choices at high levels
 
 Costs:
 
@@ -188,12 +203,46 @@ Costs:
 - Not auto-scaled
 - Usually 2 actions, but some are 1 or 3 actions for different effects
 
-## Traditions generally
+Mitigation:
+
+- Buy scrolls, wands, and staves to supplement a long adventuring day
+- Use cantrips and focus spells to preserve slots if your team is clearly going to win
+- Use a sustain spell with focus spells or cantrips to stretch out the impact of a slot over a battle
+
+### Traditions generally
 
 **Arcane** can easily target all defenses and do battlefield control, but cannot heal.
 **Primal** can heal and do a variety of elemental damage, but struggles to target Will.
-**Religion** can heal, buff, debuff, and hit unholy/holy for massive damage, but struggles to target Reflex.
-**Occult** can heal, buff, debuff, but struggles to target Reflex and often countered by mental immunity.
+**Religion** can heal, buff, debuff, and hit unholy/holy for massive damage, but few spells target Reflex.
+**Occult** can heal, buff, debuff, but few spells target Reflex and often countered by mental immunity.
+
+## Spells Vs. Weapons
+
+To some extent, this is a broad-strokes comparison of full casters with full martials. I love both, but I also tend to build martials in a way that gets me focus spells to play with.
+
+Spell Gains:
+
+- Little to no hand action-economy management
+- Easier to adjust to weaknesses, resistances, and distances
+- Caster cantrips automatically scale like martial ranged backup weapons
+- Buy more interesting things with the money that would be spent on weapon runes
+  - No need to maintain a backup weapon either
+- Usually some effect even when an enemy makes their saving throw (compared to no effect on a weapon miss)
+- Significantly more accessible and often more powerful variety of effects
+- Much more AoE access and variety (bombs are the only semi-AoE splash weapons)
+- Much more heal, buff, and debuff capacity than most feats related to weapons
+- High skill ceiling
+
+Weapon Gains:
+
+- Little to no per encounter or per day resource management
+- Usually usable with a single action
+- Ranged weapons
+  - Similarly ranged Strikes are usually as strong as focus spells for single-target damage
+- Melee weapons
+  - Not dangerous to use near an enemy with Reactive Strike-like abilities
+  - Martials using their favorite weapons are often as strong as ranged slotted spells for single-target damage
+- Low skill floor
 
 ## Referenced Principles from the Designers
 
