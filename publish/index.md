@@ -6,11 +6,11 @@ Then I did a bunch of analysis in F# and enjoyed the process of it but burned ou
 
 ## What makes this different from other analyses?
 
-Most other analyses use averages and the GM Core / CRB guidelines for creature creation. I use every creature available on [Archives of Nethys](https://2e.aonprd.com/Creatures.aspx).
+Most other analyses use averages and the GM Core / CRB guidelines for creature creation. I use every creature available on [Archives of Nethys](https://2e.aonprd.com/Creatures.aspx) as of June 21, 2025 and make my programmatic comparisons against all creatures of the same level.
 
 Should I have? Probably not. But a lot of times, in these discussions, people tend to get very side-tracked by debating the nuances and merits of comparing one ability against moderate AC/DC and another against high AC/DC. I also wanted to check how well official Pathfinder creatures stick to their own guidance.
 
-### Mathfinder's Critique Still Applies Here
+### Mathfinder's DPR critique still applies here
 
 My analyses do compare against every creature as of a certain date, but they are essentially boiling down to averages. Actually, they're boiled down to 20 tiers of results (in honor of our sacred d20), but [Mathfinder's critique of averages and DPR](https://youtu.be/HV0_2nVlAkQ?t=754) still applies here.
 
@@ -18,11 +18,11 @@ You will never cast Fireball or use Vicious Swing against every single creature 
 
 That being said, I do plan to do my best to keep this critique in mind. However, the general goal here is to compare things that are generally good to other things that are generally good across classes rather than dig deep into specific optimization niches.
 
-### Rarity and Analysis
+### Rarity and analysis
 
 Originally, I wanted to filter out Unique and Rare creatures in the results, but ultimately most creatures at high levels are already Rare. And while Unique creatures might be, well, unique, they still represent a design space that is part of the Pathfinder experience, especially if you're going through Adventure Paths.
 
-### What about Kineticist?
+### What about kineticist?
 
 Kineti-who?
 
@@ -36,3 +36,7 @@ Just kidding. I just haven't really planned to do much analyzing of them beyond 
   - Examples: Aerial Boomerang (cantrip with better AoE, plus single action follow-up next round)
   - Counter-example: Timber Sentinel
 - Overflow 18+ Capstones: High rank spell slots, but limited selection.
+
+## The charts look bad on mobile
+
+Yup. I don't know how to fix it yet, I'm sorry.
