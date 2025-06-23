@@ -1,10 +1,12 @@
 module SideAnalysis.HitPoints
+open PathfinderAnalysis.Helpers
 
 type ClassTier = 
   | Wizard
   | Rogue
   | Fighter
   | Barbarian
+  | Kineticist
 
 type AncestryTier =
   | Elf
@@ -25,7 +27,11 @@ let hitPointsPerLevel con classTier =
   | Rogue -> 8
   | Fighter -> 10
   | Barbarian -> 12
+  | Kineticist -> 10
   |> (+) con
+
+let kineticistConAtLevel level =
+  4 + atLeasts [10; 17; 20] level
 
 let ancestryBonus ancestryTier =
   match ancestryTier with
@@ -38,6 +44,7 @@ let hitPointsAtLevel ancestryTier con classTier level =
   |> (*) level
   |> (+) (ancestryBonus ancestryTier)
 
+// use average growth rates, very close to the real chart
 let monsterDamagePerLevel monsterDamageTier =
   match monsterDamageTier with
   | Low -> 1.35
@@ -62,6 +69,18 @@ let monsterDamageAtLevel monsterDamageTier level =
   // |> round
   |> (+) ((float << initialMonsterDamage) monsterDamageTier)
 
-let hitsToKnockOut hitPointsAtLevel monsterDamageAtLevel level =
-  ((float << hitPointsAtLevel) level) / (monsterDamageAtLevel level)
+let hitsToKnockOutBump hitPointsAtLevel monsterDamageAtLevel playerLevel monsterLevel =
+  ((float << hitPointsAtLevel) playerLevel) / (monsterDamageAtLevel monsterLevel)
 
+let hitsToKnockOut hitPointsAtLevel monsterDamageAtLevel level  =
+  hitsToKnockOutBump hitPointsAtLevel monsterDamageAtLevel level level  
+
+let sturdyShieldHardnessAtLevel level =
+  5 + 3 * atLeasts [4; 10; 19] level + 2 * atLeasts [7; 13; 16] level
+
+let sturdyShieldBrokenThresholdAtLevel level =
+  10 + 22 * atLeast 4 level + 8 * atLeasts [7; 13; 16] level + 12 * atLeasts [10; 19] level
+
+let sturdyShieldBlockMonsterDamageAtLevel monsterDamageTier monsterLevel shieldLevel =
+  monsterDamageAtLevel monsterDamageTier monsterLevel - float (sturdyShieldHardnessAtLevel shieldLevel)
+  |> max 0

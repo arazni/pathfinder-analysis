@@ -69,8 +69,11 @@ Mitigation:
 ## Traditions generally
 
 **Arcane** can easily target all defenses and do battlefield control, but cannot heal.
+
 **Primal** can heal and do a variety of elemental damage, but struggles to target Will.
+
 **Religion** can heal, buff, debuff, and hit unholy/holy for massive damage, but few spells target Reflex.
+
 **Occult** can heal, buff, debuff, but few spells target Reflex and often countered by mental immunity.
 
 ## Spells vs. Weapons

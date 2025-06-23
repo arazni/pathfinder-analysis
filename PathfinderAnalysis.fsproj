@@ -13,6 +13,7 @@
     <Compile Include="Transform.fs" />
     <Compile Include="Hitpoints.fs" />
     <Compile Include="ChartTools.fs" />
+		<Compile Include="publish-backend\hp.fs" />
     <Compile Include="Test.fsx" />
   </ItemGroup>
   <ItemGroup />

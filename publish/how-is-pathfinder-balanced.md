@@ -10,6 +10,8 @@ This is a high level overview of the insights I've gained through play, through 
 
 - Buffs, debuffs, healing, damage mitigation, utility, and range are all important and the game assumes the party can handle all or most of these things.
 
+## Sources
+
 ### Balance options around their performance ceiling, rather than the floors or the middle
 
 [Michael Sayre](https://paizo.com/threads/rzs43kh6?Long-air-repeater#7):
