@@ -3,7 +3,7 @@ root: index
 chapters:
 - file: balanced.md
   sections:
-  - file: balanced-weapon.md
+  - file: balanced-weapons.md
   - file: balanced-spells.md
   - file: balanced-sources.md
 - file: average-level.md
