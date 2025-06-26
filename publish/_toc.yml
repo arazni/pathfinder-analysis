@@ -1,9 +1,13 @@
 format: jb-book
 root: index
 chapters:
-- file: how-is-pathfinder-balanced.md
+- file: balanced.md
   sections:
-  - file: weapon-balance.md
-  - file: spell-balance.md
+  - file: balanced-weapon.md
+  - file: balanced-spells.md
+  - file: balanced-sources.md
+- file: average-level.md
+  sections:
+  - file: average-level-cantrip.ipynb
 - file: testing.ipynb
 - file: hp.ipynb

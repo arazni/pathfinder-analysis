@@ -70,6 +70,7 @@ Learn:
 
 - Shard
   - Feature 1
+  - Defense: AC
   - Attack roll
   - Attack trait
   - Base damage die: 1d6
@@ -77,20 +78,20 @@ Learn:
   - Piercing or slashing damage
 - Ether
   - Feature 1
-  - Targets Will Save
-  - Base damage die: d4
+  - Defense: basic will save
+  - Base damage die: 1d4
   - Heighten: Level (+4) +1 dice
   - Mental or spirit damage
 - Plasma
   - Feature 1
-  - Targets Reflex Save
-  - Base damage die: d4
+  - Defense: basic reflex save
+  - Base damage die: 1d4
   - Heighten: Level (+4) +1 dice
   - Fire or electric damage
 - Body
   - Feature 1
-  - Targets Fortitude Save
-  - Base damage die: d4
+  - Defense: basic fortitude save
+  - Base damage die: 1d4
   - Heighten: Level (+4) +1 dice
   - Bludgeoning or cold damage
 - Soul
@@ -189,7 +190,7 @@ Learn:
 - Skill
   - Feat 1
   - Requirement: Soul
-  - When you Ignite Manaburn and each time you Sustain the manaburn, targets gain a +1 status bonus to attack rolls for 1 round.
+  - When you Ignite Manaburn and each time you Sustain the manaburn, targets gain a +1 status bonus to skill checks for 1 round.
 - Expert
   - Feat 8
   - Requirement: Soul
