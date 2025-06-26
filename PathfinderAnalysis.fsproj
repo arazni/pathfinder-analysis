@@ -3,7 +3,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
-  <ItemGroup><Compile Include="publish\average-level-cantrip.ipynb" />
+  <ItemGroup>
     <Compile Include="Helpers.fs" />
     <Content Include="Data\bestiary.json" />
     <Compile Include="Bestiary.fs" />
