@@ -58,6 +58,10 @@ let highMartialAttack hasApex level =
   [highModifier hasApex; martialProficiency; potencyBonus]
   |> Seq.sumBy (fun fx -> fx level)
 
+let backupHighMartialAttack weaponLevelPenalty hasApex level =
+  [highModifier hasApex level; martialProficiency level; potencyBonus (max 1 (level - weaponLevelPenalty))]
+  |> Seq.sum
+
 let highFighterAttack hasApex level =
   [highModifier hasApex; fighterProficiency; potencyBonus]
   |> Seq.sumBy (fun fx -> fx level)
@@ -245,9 +249,14 @@ let damageFighterWeaponSpecialization result level =
 let damageDragonRage result level =
   defaultHitMultiplier result * float (barbarianRageDamage level)
 
-let martialShortbow level result =
+let martialAbpShortbow level result =
   [averageDamageDeadly D10; averageDamageWeapon D6; damageMartialWeaponSpecialization] //; averageDamagePropertyRune]
   |> Seq.sumBy (fun fn -> fn result level)
+
+let martialBackupShortbow levelPenalty level result = 
+  [averageDamageDeadly D10; averageDamageWeapon D6; averageDamagePropertyRune]
+  |> Seq.sumBy (fun fn -> fn result (max 1 (level - levelPenalty)))
+  |> (+) (damageMartialWeaponSpecialization result level)
 
 let fighterShortbow level result =
   [averageDamageDeadly D10; averageDamageWeapon D6; damageFighterWeaponSpecialization; averageDamagePropertyRune]
@@ -293,9 +302,14 @@ let martialRepeatingHandCrossbow level result =
   [averageDamageWeapon D6 result; damageMartialWeaponSpecialization result; averageDamagePropertyRune result]
   |> Seq.sumBy (fun fn -> fn level)
 
-let martialArbalest level result =
+let martialAbpArbalest level result =
   [averageDamageWeapon D10 result; damageMartialWeaponSpecialization result] //; averageDamagePropertyRune result]
   |> Seq.sumBy (fun fn -> fn level)
+
+let martialBackupArbalest levelPenalty level result = 
+  [averageDamageWeapon D10; averageDamagePropertyRune]
+  |> Seq.sumBy (fun fn -> fn result (max 1 (level - levelPenalty)))
+  |> (+) (damageMartialWeaponSpecialization result level)
 
 let fighterLongsword level result =
   [averageDamageWeapon D8; damageFighterWeaponSpecialization; averageDamagePropertyRune; damageAttribute (highModifier true)]

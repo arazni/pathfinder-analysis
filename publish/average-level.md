@@ -56,8 +56,10 @@ We are looking at standard rounds, so if we're using attacks, our subsequent att
 
 Since we're interested in the average scenario and average results over the course of 20 levels, we're not going to break down the impacts of rolling lower or higher than average in this chapter.
 
-### We assume all weapon runes are apply as soon as you reach that level
+### We assume all weapon runes apply as soon as you reach that level (except in the cantrip tier)
 
 In my experience of Blood Lords, there were many times that my monk did not have a fundamental rune for an entire level or two. But for this analysis, we're assuming as soon as we reach the same level as a rune that can be put on our weapon, it's on there.
 
 Additionally, unless otherwise specified, we'll assume a damaging property rune is chosen and applied to a weapon at levels 8, 10, and 16. This adds a total of 3d6 to each weapon's Strike damage.
+
+However, these weapon rune assumptions will be explored first in the cantrip tier of analysis. It will be highlighted in that section.

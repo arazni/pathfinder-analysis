@@ -9,5 +9,6 @@ chapters:
 - file: average-level.md
   sections:
   - file: average-level-cantrip.ipynb
+  - file: average-level-cantrip-bonus.ipynb
 - file: testing.ipynb
 - file: hp.ipynb

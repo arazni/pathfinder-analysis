@@ -1,6 +1,6 @@
 # Welcome to my Pathfinder Analysis Notebook
 
-A couple years ago, my Google Sheets analyses and charts came to a screeching halt. There comes a point where dozens of charts that depend on thousands of calculated rows of data that themselves depend on thousands of calculated rows that themselves... You get the idea. It was calculations all the way down.
+A couple years ago, my Google Sheets analyses and charts came to a screeching halt. It wouldn't load anymore. There comes a point where dozens of charts that depend on thousands of calculated rows of data that themselves depend on thousands of calculated rows that themselves... You get the idea. It was calculations all the way down.
 
 Then I did a bunch of analysis in F# and enjoyed the process of it but burned out on trying to share it with people. Well, now I'm working on actually making it meaningfully shareable! And there's excitement in the webpage updating so smoothly as I work on it (although getting it deployed was a bit of a headache).
 
@@ -9,6 +9,12 @@ Then I did a bunch of analysis in F# and enjoyed the process of it but burned ou
 Most other analyses use averages and the GM Core / CRB guidelines for creature creation. I use every creature available on [Archives of Nethys](https://2e.aonprd.com/Creatures.aspx) as of June 21, 2025 and make my programmatic comparisons against all creatures of the same level.
 
 Should I have? Probably not. But a lot of times, in these discussions, people tend to get very side-tracked by debating the nuances and merits of comparing one ability against moderate AC/DC and another against high AC/DC. I also wanted to check how well official Pathfinder creatures stick to their own guidance.
+
+Additionally, some of my analyses are permutative instead of averaged. While definitely unnecessary, I was very interested in getting as exact of results as possible rather than relying on probabilistic simulations of results. That means some of my analyses literally compute, for example, a 14d6 Fireball with two d20 saves, for an analysis of all 3 * 10^13 permutations of dice values (with some lossless shortcuts).
+
+Should I have? Probably not. A statistical analysis would've more than sufficed with a sufficient accuracy and a lot less work. Still, regardless of methodology, we get to answer questions like "What is the 'natural 1' of a rank 10 Dragon Breath damage roll?" "What if I also factored in whether enemies saved or not?" And, "if i had to boil down my entire turn to a single d20 roll, what would it be on the d20?"
+
+Here's some caveats to keep in mind:
 
 ### Mathfinder's DPR critique still applies here
 

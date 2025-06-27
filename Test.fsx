@@ -55,7 +55,7 @@ test
 //     Title = "Spout"
 //   };
 //   {
-//     AveragesByRollsByLevel = transformedResultsByRollByLevel martialArbalest PlayerAttack creatureAc (highMartialAttack true) bestiaryByLevel 2
+//     AveragesByRollsByLevel = transformedResultsByRollByLevel martialAbpArbalest PlayerAttack creatureAc (highMartialAttack true) bestiaryByLevel 2
 //       |> Seq.map resultRollsToAverages
 //       |> Seq.toArray;
 //     Title = "Arbalest"
@@ -65,10 +65,10 @@ test
 // |> generateCharts titleFn
 // |> Seq.iteri (fun i chart -> Chart.savePNG (path = (sprintf "spout-arbalest-%02i" i), Width = 800, Height = 800) chart)
 
-// transformedResultsByRollByLevel martialShortbow PlayerAttack creatureAc ((+) -5 << highMartialAttack true) bestiaryByLevel 2
+// transformedResultsByRollByLevel martialAbpShortbow PlayerAttack creatureAc ((+) -5 << highMartialAttack true) bestiaryByLevel 2
 // |> Seq.map resultRollsToAverages
 // |> Seq.toArray
-// |> mergeRollAveragesByLevel <| (transformedResultsByRollByLevel martialShortbow PlayerAttack creatureAc (highMartialAttack true) bestiaryByLevel 2
+// |> mergeRollAveragesByLevel <| (transformedResultsByRollByLevel martialAbpShortbow PlayerAttack creatureAc (highMartialAttack true) bestiaryByLevel 2
 //   |> Seq.map resultRollsToAverages
 //   |> Seq.toArray)
 
