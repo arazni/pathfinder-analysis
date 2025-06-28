@@ -109,16 +109,16 @@ Learn:
 - Onward
   - Feature 1
   - Area: 20ft line
-  - Heighten: Level (+2) Range increases by 5ft.
+  - Heighten: Level (+2) Area increases by 5ft.
 - Blast
   - Feature 1
   - Area: 15ft cone
-  - Heighten: Level (+2) Range increases by 5ft.
+  - Heighten: Level (+3) Area increases by 5ft.
 - Burst
   - Feature 1
-  - Range: 30ft
+  - Range: 20ft
   - Area: 5ft burst
-  - Heighten: Level (+3) Range and Area increases by 5ft.
+  - Heighten: Level (+4) Range and Area increases by 5ft.
 - Radiate
   - Feature 1
   - Area: 5ft emanation centered on self

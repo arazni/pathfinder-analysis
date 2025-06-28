@@ -44,15 +44,15 @@ let swashbucklerShortbow2Shot weaponLevelPenalty creatureLevelBump =
     Title = sprintf "🤺 Shortbow (PL-%i) ❖❖" weaponLevelPenalty
   };
 
-let swashbucklerAbpShortbow2Shot creatureLevelBump =
+let swashbucklerAbpShortbow2Shot buff creatureLevelBump =
   {
-    AveragesByRollsByLevel = mapMerge (highMartialAttack true) creatureLevelBump 5 martialAbpShortbow;
+    AveragesByRollsByLevel = mapMerge ((+) buff << highMartialAttack true) creatureLevelBump 5 martialAbpShortbow;
     Title = sprintf "🤺 Shortbow (ABP) ❖❖"
   };
 
-let sorcererTelekineticProjectile creatureLevelBump =
+let sorcererTelekineticProjectile buff creatureLevelBump =
   { 
-    AveragesByRollsByLevel = transformedResultsByRollByLevel telekineticProjectile PlayerAttack creatureAc (casterAttack true false) bestiaryByLevel creatureLevelBump
+    AveragesByRollsByLevel = transformedResultsByRollByLevel telekineticProjectile PlayerAttack creatureAc ((+) buff << casterAttack true false) bestiaryByLevel creatureLevelBump
       |> Seq.map resultRollsToAverages
       |> Seq.toArray;
     Title = "🩸 Telekinetic Projectile ❖❖"
@@ -67,31 +67,31 @@ let cantripTierCharts creatureLevelBump chartDataGenerators =
 let cantripBackupLevelPenaltyCharts weaponLevelPenalties creatureLevelBump =
   weaponLevelPenalties
   |> Seq.map swashbucklerShortbow2Shot
-  |> Seq.append [sorcererTelekineticProjectile]
+  |> Seq.append [sorcererTelekineticProjectile 0]
   |> cantripTierCharts creatureLevelBump
   |> generateLevelScaleChart (sprintf "Caster and Martial Backup Options - Creatures PL+%i" creatureLevelBump)
 
 let cantripBackupCompareCharts creatureLevelBump =
   seq {
-    sorcererTelekineticProjectile;
+    sorcererTelekineticProjectile 0;
     swashbucklerShortbow2Shot 4;
-    swashbucklerAbpShortbow2Shot
+    swashbucklerAbpShortbow2Shot 0
   }
   |> cantripTierCharts creatureLevelBump
   |> generateLevelScaleChart (sprintf "Caster and Martial Backup Options - Creatures PL+%i" creatureLevelBump)
 
 let cantripBackupCreatureLevelCharts creatureLevelBump =
   seq {
-    sorcererTelekineticProjectile;
-    swashbucklerAbpShortbow2Shot;
+    sorcererTelekineticProjectile 0;
+    swashbucklerAbpShortbow2Shot 0;
     standardSpellChart "🩸 Spout (Reflex) ❖❖" spout SaveSelector.Reflex;
   }
   |> cantripTierCharts creatureLevelBump
-  |> generateLevelScaleChart (sprintf "Caster and Martial Backup Options - Creatures PL+%i" creatureLevelBump)
+  |> generateLevelScaleChart (sprintf "Caster and Martial Backup Options - Creatures PL%s" (sigh creatureLevelBump))
 
 let cantripArbalestVsShortbowCharts creatureLevelBump =
   seq {
-    swashbucklerAbpShortbow2Shot;
+    swashbucklerAbpShortbow2Shot 0;
     swashbucklerArbalest1Shot;
     swashbucklerArbalest2Shot;
     swashbucklerShortbow2Shot 0;
@@ -102,7 +102,30 @@ let cantripArbalestVsShortbowCharts creatureLevelBump =
   |> cantripTierCharts creatureLevelBump
   |> generateLevelScaleChart (sprintf "Martial Backup Options - Creatures PL%s" (sigh creatureLevelBump))
 
-    // standardSpellChart "🌿 Spout (Middle) ❖❖" spout SaveSelector.Middle creatureLevelBump;
-    // standardSpellChart "🌿 Spout (Lowest) ❖❖" spout SaveSelector.Lowest creatureLevelBump;
-    // standardSpellChart "🌿 Spout (Highest) ❖❖" spout SaveSelector.Highest creatureLevelBump;
-    // 
+let sprintfSpout save = 
+  sprintf "🩸 Spout (%s) ❖❖" (saveSelectorText save)
+
+let cantripSpoutSavesCharts saves creatureLevelBump =
+  saves
+  |> Seq.map (fun save -> standardSpellChart (sprintfSpout save) spout save)
+  |> cantripTierCharts creatureLevelBump
+  |> generateLevelScaleChart (sprintf "Hypothetical Spout Comparisons - Creatures PL%s" (sigh creatureLevelBump))
+
+let sprintfSaveBump save bump =
+  sprintf "PL%s (%s)" (sigh bump) (saveSelectorText save)
+
+let cantripSpoutSavesLevelsCharts (saveBumps: (SaveSelector * int) seq) =
+  saveBumps
+  |> Seq.map (fun (save, bump) -> standardSpellChart (sprintfSaveBump save bump) spout save bump)
+  |> Seq.cache
+  |> flatten
+  |> generateLevelScaleChart "Impact of Creature Level Gap and Save Choice on Hypothetical Spouts"
+
+let cantripSpoutWeakestVsShortbowCharts creatureLevelBump =
+  seq {
+    sorcererTelekineticProjectile 2;
+    swashbucklerAbpShortbow2Shot 2;
+    standardSpellChart "🩸 Spout (Lowest) ❖❖" spout SaveSelector.Lowest;
+  }
+  |> cantripTierCharts creatureLevelBump
+  |> generateLevelScaleChart (sprintf "Off-Guard vs. Lowest Save - Creature PL%s" (sigh creatureLevelBump))

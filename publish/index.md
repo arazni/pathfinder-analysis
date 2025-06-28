@@ -46,3 +46,11 @@ Just kidding. I just haven't really planned to do much analyzing of them beyond 
 ## The charts look bad on mobile
 
 Yup. I don't know how to fix it yet, I'm sorry.
+
+## What else do you do?
+
+Also visit [my Blades in the Dark (and Scum and Villainy) character sheet app](https://arazni.github.io/blades-in-the-sheets) if you ever need one! It has partial French support and was built with NVDA screen-reader testing!
+
+If you'd like to continue encouraging or supporting my work, consider buying me a coffee. 💖
+
+<a href='https://ko-fi.com/S6S5KA4DP' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi3.png?v=3' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
