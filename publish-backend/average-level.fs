@@ -10,6 +10,8 @@ let sigh int =
   if int < 0 then sprintf "%i" int
   else sprintf "+%i" int
 
+// Cantrip
+
 let swashbucklerArbalest1Shot creatureLevelBump = 
   {
     AveragesByRollsByLevel = transformedResultsByRollByLevel martialAbpArbalest PlayerAttack creatureAc (highMartialAttack true) bestiaryByLevel creatureLevelBump
@@ -129,3 +131,25 @@ let cantripSpoutWeakestVsShortbowCharts creatureLevelBump =
   }
   |> cantripTierCharts creatureLevelBump
   |> generateLevelScaleChart (sprintf "Off-Guard vs. Lowest Save - Creature PL%s" (sigh creatureLevelBump))
+
+// Focus
+let sprintfTempestSurge save = 
+  sprintf "🌿 Tempest Surge (%s) ❖❖" (saveSelectorText save)
+
+let psychicTelekineticProjectile creatureLevelBump =
+  { 
+    AveragesByRollsByLevel = transformedResultsByRollByLevel psychicUnleashPsycheTelekineticProjectile PlayerAttack creatureAc (casterAttack true false) bestiaryByLevel creatureLevelBump
+      |> Seq.map resultRollsToAverages
+      |> Seq.toArray;
+    Title = "🧠 Amp. UP TKP ❖❖"
+  };
+
+let focusCompareCharts creatureLevelBump =
+  seq {
+    psychicTelekineticProjectile;
+    fighterLongbow2StrikesChart;
+    standardSpellChart (sprintfTempestSurge SaveSelector.Reflex) tempestSurge SaveSelector.Reflex;
+  }
+  |> cantripTierCharts creatureLevelBump
+  |> generateLevelScaleChart (sprintf "Focus Spells and Ranged Specialists - Creatures PL%s" (sigh creatureLevelBump))
+

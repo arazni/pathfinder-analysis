@@ -108,6 +108,11 @@ let toDamageCount damageFromResultFunction result rollCounts =
   rollCounts
   |> Seq.map (fun rollCount -> { Damage = float rollCount.Roll * damageFromResultFunction result; Count = rollCount.Count })
 
+let spellRankDamage multiplier result level =
+  multiplier * spellRank level
+  |> float
+  |> (*) (defaultHitMultiplier result)
+
 let diceDamageNeedleDarts result level =
   2 + spellRank level
   |> rollDistribution D4
@@ -122,6 +127,19 @@ let averageDamageTelekineticProjectile result level =
 let diceDamageTelekineticProjectile result level =
   1 + spellRank level
   |> rollDistribution D6
+  |> toDamageCount defaultHitMultiplier result
+
+let averageDamagePsychicTelekineticProjectile result level =
+  2 * spellRank level
+  |> float
+  |> (*) (averageRoll D6)
+  |> (*) (defaultHitMultiplier result)
+
+// not yet tested
+let diceDamagePsychicTelekineticProjectile result level =
+  2 * spellRank level
+  |> rollDistribution D6
+  |> Seq.map (fun rollCount -> { rollCount with Roll = rollCount.Roll + 2 * spellRank level })
   |> toDamageCount defaultHitMultiplier result
 
 let averageDamageSpout result level =
@@ -329,6 +347,10 @@ let telekineticProjectile level result =
   [averageDamageTelekineticProjectile result]
   |> Seq.sumBy (fun fn -> fn level)
 
+let psychicUnleashPsycheTelekineticProjectile level result =
+  [averageDamagePsychicTelekineticProjectile; spellRankDamage 2]
+  |> Seq.sumBy (fun fn -> fn result level)
+
 let spout level result =
   [averageDamageSpout result]
   |> Seq.sumBy (fun fn -> fn level)
@@ -349,4 +371,3 @@ let thunderstrike level result =
 let forceBarrage actions level result = 
   averageDamageForceBarrage actions result level
 
-  
